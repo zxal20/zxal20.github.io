@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ar-gallery-v999-offline';
+const CACHE_NAME = 'ar-gallery-v99999-offline';
 const ASSETS = [
   './',
   './index.html',
