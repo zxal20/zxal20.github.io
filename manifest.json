@@ -1,28 +1,22 @@
 {
-  "id": "/Magicplayer5/",
-  "name": "AR Gallery Pro",
-  "short_name": "AR Gallery",
-  "description": "Ultra Fast AR Video and Image Gallery",
-
-  "start_url": "/Magicplayer5/index.html",
-  "scope": "/Magicplayer5/",
-
+  "name": "پخش‌کننده جادویی",
+  "short_name": "Magic Player",
+  "description": "پخش‌کننده جادویی با پشتیبانی از AR و WebXR",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone"],
-
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#000000",
-
   "icons": [
     {
-      "src": "icon-512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-
-  "dir": "auto",
+  "categories": ["entertainment", "video"],
   "lang": "fa",
-  "orientation": "portrait-primary"
+  "dir": "rtl"
 }
