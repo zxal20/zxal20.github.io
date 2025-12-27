@@ -1,14 +1,18 @@
 /* ===============================
-   Service Worker – Root Fixed
+   Service Worker – Final Fixed
    =============================== */
 
-const CACHE_NAME = 'ar-gallery-root-v999999999999999999';
+const CACHE_NAME = 'magicplayer-cache-v1';
+
+/* صفحه fallback برای آفلاین */
+const OFFLINE_PAGE = '/offline.html';
 
 /* فایل‌هایی که باید کش شوند */
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  OFFLINE_PAGE,
 
   '/icon-192.png',
   '/icon-512.png',
@@ -24,17 +28,15 @@ const ASSETS = [
   '/js/mediapipe/selfie_segmentation_solution_simd_wasm_bin.wasm'
 ];
 
-/* نصب Service Worker */
+/* نصب */
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
-/* فعال‌سازی و حذف کش‌های قدیمی */
+/* فعال‌سازی */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -50,21 +52,24 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-/* استراتژی Fetch */
+/* Fetch */
 self.addEventListener('fetch', (event) => {
-  // برای درخواست‌های غیر GET کاری نکن
   if (event.request.method !== 'GET') return;
 
-  // همیشه فایل‌های اصلی رو از شبکه بگیر (مهم برای PWA Builder)
+  // همیشه صفحه اصلی را آنلاین بگیر (برای TWA و AR مهم است)
   if (
-    event.request.url.includes('manifest.json') ||
+    event.request.mode === 'navigate' ||
     event.request.url.endsWith('/')
   ) {
-    event.respondWith(fetch(event.request));
+    event.respondWith(
+      fetch(event.request).catch(() =>
+        caches.match(OFFLINE_PAGE)
+      )
+    );
     return;
   }
 
-  // بقیه فایل‌ها: cache-first
+  // سایر فایل‌ها: cache-first
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request);
