@@ -1,29 +1,73 @@
-const CACHE_NAME = 'ar-gallery-v99999-offline';
+/* ===============================
+   Service Worker – Root Fixed
+   =============================== */
+
+const CACHE_NAME = 'ar-gallery-root-v1';
+
+/* فایل‌هایی که باید کش شوند */
 const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './js/three.module.js',
-  './js/webxr-polyfill.js',
-  './css/Vazirmatn-font-face.css',
-  
-  // فایل‌های MediaPipe
-  './js/mediapipe/selfie_segmentation.js',
-  './js/mediapipe/selfie_segmentation.binarypb',
-  './js/mediapipe/selfie_segmentation_solution_simd_wasm_bin.js',
-  './js/mediapipe/selfie_segmentation_solution_simd_wasm_bin.wasm'
-  // نکته: اگر فونت‌ها را هم دانلود کردید، مسیر آن‌ها را هم اینجا اضافه کنید
-  // مثلا: './css/fonts/Vazirmatn.woff2'
+  '/',
+  '/index.html',
+  '/manifest.json',
+
+  '/icon-192.png',
+  '/icon-512.png',
+
+  '/css/Vazirmatn-font-face.css',
+
+  '/js/three.module.js',
+  '/js/webxr-polyfill.js',
+
+  '/js/mediapipe/selfie_segmentation.js',
+  '/js/mediapipe/selfie_segmentation.binarypb',
+  '/js/mediapipe/selfie_segmentation_solution_simd_wasm_bin.js',
+  '/js/mediapipe/selfie_segmentation_solution_simd_wasm_bin.wasm'
 ];
 
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+/* نصب Service Worker */
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
   );
 });
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => response || fetch(e.request))
+/* فعال‌سازی و حذف کش‌های قدیمی */
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      )
+    )
+  );
+  self.clients.claim();
+});
+
+/* استراتژی Fetch */
+self.addEventListener('fetch', (event) => {
+  // برای درخواست‌های غیر GET کاری نکن
+  if (event.request.method !== 'GET') return;
+
+  // همیشه فایل‌های اصلی رو از شبکه بگیر (مهم برای PWA Builder)
+  if (
+    event.request.url.includes('manifest.json') ||
+    event.request.url.endsWith('/')
+  ) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // بقیه فایل‌ها: cache-first
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      return cached || fetch(event.request);
+    })
   );
 });
