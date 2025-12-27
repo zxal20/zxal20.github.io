@@ -1,8 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.abzarfoghladeh.magicplayer",
-        "sha256_cert_fingerprints": ["70:62:3E:1D:ED:39:B3:77:64:3F:E6:8C:DD:74:EE:49:1A:FF:CE:82:BF:BD:7D:F2:86:AA:E1:7E:AC:F4:38:24"]
-      }
-    }]
