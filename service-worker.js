@@ -2,7 +2,7 @@
    Service Worker – Root Fixed
    =============================== */
 
-const CACHE_NAME = 'ar-gallery-root-v8';
+const CACHE_NAME = 'ar-gallery-root-v99999999';
 
 /* فایل‌هایی که باید کش شوند */
 const ASSETS = [
