@@ -2,7 +2,7 @@
    Service Worker – Final Fixed
    =============================== */
 
-const CACHE_NAME = 'magicplayer-cache-v99bbbppwwwuuuwwwpcomppbyesssxxxxxxx9';
+const CACHE_NAME = 'magicplayer-cache-v99bbbppxxxxxxx9';
 
 /* صفحه fallback برای آفلاین */
 const OFFLINE_PAGE = '/offline.html';
