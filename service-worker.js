@@ -2,7 +2,7 @@
    Service Worker – Final Fixed
    =============================== */
 
-const CACHE_NAME = 'magicplayer-cache-v99b9ccc99999y99es9999999bb99999pmgjgj99mxxxxxxx9';
+const CACHE_NAME = 'magicplayer-cache-v99b9ccc99999y9999999es9999999bb99999pmgjgj99mxxxxxxx9';
 
 /* صفحه fallback برای آفلاین */
 const OFFLINE_PAGE = '/offline.html';
@@ -19,8 +19,8 @@ const ASSETS = [
 
   '/css/Vazirmatn-font-face.css',
 
-  '/js/three.module.js',
-  '/js/webxr-polyfill.js',
+  '/js/babylon.js',
+  '/js/babylonjs.loaders.min.js',
 
   '/js/mediapipe/selfie_segmentation.js',
   '/js/mediapipe/selfie_segmentation.binarypb',
