@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebXR Media Gallery r170</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif; }
+        #ui-container {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 10px; z-index: 999;
+        }
+        input { display: none; }
+        label {
+            background: rgba(0,0,0,0.7); color: white; padding: 10px 20px;
+            border-radius: 5px; cursor: pointer; border: 1px solid white;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-container">
+        <label for="file-input">انتخاب عکس یا ویدیو</label>
+        <input type="file" id="file-input" accept="image/*,video/*">
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js",
+                "three/addons/": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { ARButton } from 'three/addons/webxr/ARButton.js';
+
+        let scene, camera, renderer, mesh;
+
+        init();
+
+        async function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+            // ایجاد رندرر (به صورت پیش‌فرض WebGL در r170، اما آماده برای WebGPU)
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.xr.enabled = true;
+            document.body.appendChild(renderer.domElement);
+
+            // اضافه کردن دکمه AR
+            document.body.appendChild(ARButton.createButton(renderer));
+
+            // ایجاد یک صفحه (Plane) برای نمایش مدیا
+            const geometry = new THREE.PlaneGeometry(0.5, 0.5);
+            const material = new THREE.MeshBasicMaterial({ color: 0xcccccc, side: THREE.DoubleSide });
+            mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(0, 0, -1); // قرارگیری در فاصله یک متری
+            scene.add(mesh);
+
+            // مدیریت انتخاب فایل
+            const fileInput = document.getElementById('file-input');
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                const url = URL.createObjectURL(file);
+
+                if (file.type.startsWith('image/')) {
+                    loadTexture(url);
+                } else if (file.type.startsWith('video/')) {
+                    loadVideo(url);
+                }
+            });
+
+            renderer.setAnimationLoop(render);
+        }
+
+        function loadTexture(url) {
+            const loader = new THREE.TextureLoader();
+            loader.load(url, (texture) => {
+                mesh.material.map = texture;
+                mesh.material.needsUpdate = true;
+                // تنظیم نسبت ابعاد صفحه بر اساس عکس
+                const aspect = texture.image.width / texture.image.height;
+                mesh.scale.set(aspect, 1, 1);
+            });
+        }
+
+        function loadVideo(url) {
+            const video = document.createElement('video');
+            video.src = url;
+            video.loop = true;
+            video.muted = true; // برای موبایل باید ابتدا Mute باشد تا پخش شود
+            video.play();
+
+            const videoTexture = new THREE.VideoTexture(video);
+            mesh.material.map = videoTexture;
+            mesh.material.needsUpdate = true;
+            
+            video.onloadedmetadata = () => {
+                const aspect = video.videoWidth / video.videoHeight;
+                mesh.scale.set(aspect, 1, 1);
+            };
+        }
+
+        function render() {
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
