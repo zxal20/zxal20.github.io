@@ -495,7 +495,33 @@
         function createMesh(texture, width, height) { 
             try{ removeContentMeshes(); }catch(e){} 
             
-            const aspectRatio = width / height; const displayHeight = 1.0; const displayWidth = displayHeight * aspectRatio; currentOriginalWidth = displayWidth; currentOriginalHeight = displayHeight; const geometry = new THREE.PlaneGeometry(displayWidth, displayHeight, 1, 1); const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: false }); currentMesh = new THREE.Mesh(geometry, material); currentMesh.name = 'contentMesh'; currentMesh.position.set(0, 0, -parseFloat(distSlider.value)); currentMesh.rotation.order = 'XYZ'; scene.add(currentMesh); showToast("فایل بارگذاری شد"); 
+            // اصلاح برای نسخه جدید: تنظیم فضای رنگی مستقیم روی تکسچر
+            texture.colorSpace = THREE.SRGBColorSpace; 
+            
+            const aspectRatio = width / height; 
+            const displayHeight = 1.0; 
+            const displayWidth = displayHeight * aspectRatio; 
+            currentOriginalWidth = displayWidth; 
+            currentOriginalHeight = displayHeight; 
+            
+            const geometry = new THREE.PlaneGeometry(displayWidth, displayHeight, 1, 1); 
+            
+            // اطمینان از متریال ساده برای جلوگیری از خطای شیدر در نسخه جدید
+            const material = new THREE.MeshBasicMaterial({ 
+                map: texture, 
+                side: THREE.DoubleSide, 
+                transparent: false 
+            }); 
+            
+            currentMesh = new THREE.Mesh(geometry, material); 
+            currentMesh.name = 'contentMesh'; 
+            
+            // تنظیم موقعیت اولیه
+            currentMesh.position.set(0, 0, -parseFloat(distSlider.value)); 
+            currentMesh.rotation.order = 'XYZ'; 
+            
+            scene.add(currentMesh); 
+            showToast("فایل بارگذاری شد"); 
         }
         function setupTouchGestures() {
             const el = document.body;
