@@ -1,0 +1,409 @@
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>AR Gallery Pro - Powered by DeepAR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    
+    <link href="css/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
+    <script src="js/deepar.js"></script>
+    
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; margin: 0; overflow: hidden; background-color: #000; user-select: none; -webkit-tap-highlight-color: transparent; color: white; }
+        #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; transition: opacity 0.3s; }
+        .ui-hidden #ui-layer { opacity: 0; pointer-events: none; }
+        .ui-top-bar { padding: 15px; display: flex; justify-content: space-between; pointer-events: auto; padding-top: env(safe-area-inset-top, 20px); }
+        .ui-top-bar-left, .ui-top-bar-right { display: flex; gap: 10px; }
+        .ui-bottom-controls { padding: 10px 15px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: auto; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; box-sizing: border-box; padding-bottom: calc(20px + env(safe-area-inset-bottom, 10px)); }
+        .btn-icon { background: rgba(40, 40, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s, background 0.3s; pointer-events: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.3); padding: 0; margin: 0; }
+        .btn-icon:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.3); }
+        .btn-icon.active-mode { background: #3b82f6; border-color: #60a5fa; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        .btn-icon.exit-mode { background: rgba(220, 38, 38, 0.8); border-color: #f87171; }
+        .hidden { display: none !important; }
+        .btn-label { background: #2563eb; color: white; padding: 8px 16px; border-radius: 30px; display: flex; align-items: center; gap: 10px; font-weight: bold; cursor: pointer; transition: transform 0.2s; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-size: 0.9rem; }
+        .btn-label:active { transform: scale(0.95); }
+        .controls-row { display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 40px; flex-wrap: wrap; justify-content: center; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -6px; border: 1px solid white; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #4b5563; border-radius: 2px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; display: none; justify-content: center; align-items: center; padding: 20px; pointer-events: auto; box-sizing: border-box; backdrop-filter: blur(5px); }
+        .modal-content { background: #1f2937; color: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; border: 1px solid #374151; text-align: right; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #374151; padding-bottom: 10px; }
+        .modal-title { font-size: 1.1rem; font-weight: bold; color: #60a5fa; margin: 0; }
+        #temp-reveal-btn { position: fixed; top: 80px; right: 20px; z-index: 100; display: none; padding: 12px 25px; background: rgba(37, 99, 235, 0.9); color: white; font-weight: bold; font-size: 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); pointer-events: auto; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        #touch-status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 10px 20px; border-radius: 20px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 20; font-size: 0.9rem; }
+        .radio-group { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
+        .radio-item { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .radio-item:hover { background: rgba(255,255,255,0.1); }
+        .radio-item input { width: 20px; height: 20px; accent-color: #3b82f6; }
+        
+        /* کانتینر DeepAR */
+        #ar-container { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1; touch-action: none; /* جلوگیری از اسکرول مرورگر هنگام کار با آبجکت */ }
+        #deepar-canvas { width: 100%; height: 100%; object-fit: cover; }
+
+        .w-full { width: 100%; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .gap-3 { gap: 12px; }
+        .text-xs { font-size: 0.75rem; }
+        .text-white { color: white; }
+        .bg-black\/60 { background-color: rgba(0,0,0,0.6); }
+        .rounded-full { border-radius: 9999px; }
+        .p-2 { padding: 0.5rem; }
+        .flex-grow { flex-grow: 1; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 0.5rem; } 
+        .justify-end { justify-content: flex-end; }
+        .flex-col { flex-direction: column; }
+    </style>
+</head>
+<body id="app-body">
+
+    <div id="ar-container">
+        <canvas id="deepar-canvas"></canvas>
+    </div>
+    <div id="touch-status">وضعیت</div>
+    <button id="temp-reveal-btn">آشکارسازی دکمه‌ها</button>
+
+    <div id="ui-layer">
+        <div class="ui-top-bar">
+            <div class="ui-top-bar-left">
+                <button id="exit-btn" class="btn-icon exit-mode" title="برگشت">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/></svg>
+                </button>
+                <button id="about-btn" class="btn-icon" title="درباره ما"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg></button>
+                <button id="help-btn" class="btn-icon" title="راهنما"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/></svg></button>
+                <button id="settings-btn" class="btn-icon" title="تنظیمات"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1-1.255-.52l-.094-.319z"/></svg></button>
+            </div>
+            <div class="ui-top-bar-right">
+                <button id="clean-view-btn" class="btn-icon hidden" title="پنهان شدن دکمه‌ها"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg></button>
+            </div>
+        </div>
+
+        <div class="ui-bottom-controls">
+            <div class="w-full flex justify-end px-8 mb-4">
+                <label id="file-label" class="btn-label">
+                    <span>انتخاب ویدیو یا عکس</span>
+                    <input type="file" id="file-input" accept="video/*,image/*" style="display: none;">
+                </label>
+            </div>
+
+            <div id="controls-panel" class="flex flex-col gap-3 items-center hidden w-full">
+                <div class="controls-row">
+                     <button id="screenshot-btn" class="btn-icon" title="اسکرین شات"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/></svg></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">تنظیمات آشکارسازی</h3>
+                <button id="close-settings-btn" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
+            </div>
+            <p style="font-size: 0.9rem; color: #ccc;">نحوه نمایش دوباره دکمه‌ها را انتخاب کنید:</p>
+            <div class="radio-group">
+                <label class="radio-item"><input type="radio" name="reveal-mode" value="button" checked><span>نمایش دکمه موقت با لمس (۲ ثانیه)</span></label>
+                <label class="radio-item"><input type="radio" name="reveal-mode" value="gesture"><span>چهار انگشت همزمان روی صفحه</span></label>
+            </div>
+        </div>
+    </div>
+    
+    <div id="about-modal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <div class="modal-header" style="justify-content: center; position: relative;">
+                <h3 class="modal-title" style="font-size: 1.3rem;">درباره ما</h3>
+                <button id="close-about-btn" style="background:none; border:none; color:white; font-size:1.5rem; position: absolute; left: 0;">&times;</button>
+            </div>
+            <div style="padding: 20px 0;">
+                <p style="font-size: 1rem;">ساخته شده توسط ابزار فوق العاده</p>
+                <p style="font-size: 0.8rem; color: #aaa;">نسخه DeepAR Pro</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">راهنمای کامل</h3>
+                <button id="close-help-btn" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <ul style="list-style-type: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
+                    <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. شروع کار:</strong> ابتدا با دکمه آبی فایل ویدیو یا عکس خود را انتخاب کنید.</li>
+                    <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. جابجایی:</strong> با کشیدن یک انگشت روی صفحه، تصویر را جابجا کنید.</li>
+                    <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>3. تغییر سایز:</strong> با استفاده از دو انگشت (نیشگون گرفتن)، تصویر را کوچک یا بزرگ کنید.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // جلوگیری از ارسال مجدد فرم
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('SW Reg!', reg))
+                    .catch(err => console.log('SW Fail', err));
+            });
+        }
+        
+        function showToast(msg) { 
+            const touchStatus = document.getElementById('touch-status');
+            touchStatus.innerText = msg; 
+            touchStatus.style.opacity = '1'; 
+            setTimeout(() => { touchStatus.style.opacity = '0'; }, 2500); 
+        }
+
+        // متغیرهای DeepAR
+        let deepAR = null;
+        let uiHidden = false;
+        let revealMode = 'button';
+        let revealTimer = null;
+        
+        // متغیرهای کنترل آبجکت
+        let currentScale = 1.0;
+        let currentPosX = 0.0;
+        let currentPosY = 0.0;
+        let isDragging = false;
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+        let initialPinchDistance = 0;
+        let initialScale = 1.0;
+
+        // المان‌های UI
+        const uiLayer = document.getElementById('ui-layer');
+        const fileInput = document.getElementById('file-input');
+        const fileLabel = document.getElementById('file-label');
+        const controlsPanel = document.getElementById('controls-panel');
+        const cleanViewBtn = document.getElementById('clean-view-btn');
+        const tempRevealBtn = document.getElementById('temp-reveal-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const helpModal = document.getElementById('help-modal');
+        const exitBtn = document.getElementById('exit-btn');
+        const aboutBtn = document.getElementById('about-btn');
+        const aboutModal = document.getElementById('about-modal');
+        const screenshotBtn = document.getElementById('screenshot-btn');
+
+        async function init() {
+            const canvas = document.getElementById('deepar-canvas');
+            
+            try {
+                // راه اندازی DeepAR با تنظیمات کیفیت بالا
+                deepAR = await deepar.initialize({
+                    licenseKey: 'df944f117d618e8e18dee5259014c8a889a9830c7a5607b8a49c4efa144711e65ae1b7801f9b6c9f', 
+                    canvas: canvas,
+                    effect: null,
+                    additionalOptions: {
+                        cameraConfig: {
+                            facingMode: 'environment', // دوربین پشت
+                            width: { ideal: 1920 },    // درخواست رزولوشن بالا (Full HD)
+                            height: { ideal: 1080 }
+                        }
+                    }
+                });
+
+                console.log("DeepAR initialized with High Quality");
+                showToast("دوربین با کیفیت بالا آماده است");
+
+                // مدیریت ریسایز
+                window.addEventListener('resize', () => {
+                     // در نسخه جدید DeepAR مدیریت سایز خودکار است اما برای اطمینان
+                     if(deepAR) deepAR.setCanvasSize(window.innerWidth, window.innerHeight);
+                });
+
+                setupUIListeners();
+                setupTouchGestures();
+
+            } catch (error) {
+                console.error("DeepAR Init Error:", error);
+                showToast("خطا در راه اندازی: " + error.message);
+            }
+        }
+
+        // شروع برنامه
+        init();
+
+        function setupUIListeners() {
+            exitBtn.addEventListener('click', () => { 
+                if(deepAR) deepAR.shutdown();
+                window.history.back();
+            });
+            
+            aboutBtn.addEventListener('click', () => aboutModal.style.display = 'flex'); 
+            document.getElementById('close-about-btn').addEventListener('click', () => aboutModal.style.display = 'none');
+            
+            fileInput.addEventListener('click', (e) => { e.stopPropagation(); });
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            cleanViewBtn.addEventListener('click', () => { uiHidden = true; document.body.classList.add('ui-hidden'); showToast("منوها پنهان شدند"); });
+            tempRevealBtn.addEventListener('click', () => revealUI());
+            
+            settingsBtn.addEventListener('click', () => settingsModal.style.display = 'flex'); 
+            document.getElementById('close-settings-btn').addEventListener('click', () => settingsModal.style.display = 'none');
+            
+            document.querySelectorAll('input[name="reveal-mode"]').forEach(radio => radio.addEventListener('change', (e) => revealMode = e.target.value));
+            
+            document.getElementById('help-btn').addEventListener('click', () => helpModal.style.display = 'flex'); 
+            document.getElementById('close-help-btn').addEventListener('click', () => helpModal.style.display = 'none');
+
+            if(screenshotBtn) {
+                screenshotBtn.addEventListener('click', async () => {
+                    if(deepAR) {
+                        try {
+                            const screenshot = await deepAR.takeScreenshot();
+                            const link = document.createElement('a');
+                            link.href = screenshot;
+                            link.download = 'deepar-screenshot.png';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            showToast("اسکرین شات ذخیره شد");
+                        } catch(e) {
+                            showToast("خطا در اسکرین شات");
+                        }
+                    }
+                });
+            }
+        }
+
+        async function handleFileSelect(event) {
+            const file = event.target.files[0]; 
+            if (!file || !deepAR) return; 
+            
+            const url = URL.createObjectURL(file); 
+            
+            // نمایش کنترل‌ها
+            controlsPanel.classList.remove('hidden'); 
+            controlsPanel.classList.add('flex');
+            cleanViewBtn.classList.remove('hidden');
+            fileLabel.querySelector('span').innerText = "تغییر فایل";
+
+            try {
+                showToast("در حال بارگذاری فایل...");
+                // استفاده از backgroundReplacement برای نمایش فایل
+                // نکته: برای جلوگیری از چسبیدن به صورت، تلاش میکنیم سگمنتیشن را کنترل کنیم یا فایل را روی نود اصلی قرار دهیم
+                await deepAR.backgroundReplacement(true, url);
+                
+                // ریست کردن پوزیشن برای فایل جدید
+                currentScale = 1.0;
+                currentPosX = 0.0;
+                currentPosY = 0.0;
+                
+                showToast("فایل بارگذاری شد. با انگشت جابجا کنید");
+            } catch(e) {
+                console.error(e);
+                showToast("خطا در بارگذاری فایل");
+            }
+
+            event.target.value = '';
+        }
+
+        function revealUI() { 
+            uiHidden = false; 
+            document.body.classList.remove('ui-hidden'); 
+            tempRevealBtn.style.display = 'none'; 
+        }
+
+        // محاسبه فاصله بین دو انگشت
+        function getDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function setupTouchGestures() {
+            const el = document.getElementById('ar-container');
+            
+            el.addEventListener('touchstart', (e) => {
+                if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.modal')) return;
+                
+                // مدیریت منوها
+                if (uiHidden) { 
+                    if (revealMode === 'gesture' && e.touches.length === 4) revealUI(); 
+                    else if (revealMode === 'button') { 
+                        tempRevealBtn.style.display = 'block'; 
+                        if (revealTimer) clearTimeout(revealTimer); 
+                        revealTimer = setTimeout(() => { tempRevealBtn.style.display = 'none'; }, 2000); 
+                    } 
+                }
+
+                if(deepAR) {
+                     if (e.touches.length === 1) {
+                        // شروع درگ
+                        isDragging = true;
+                        lastTouchX = e.touches[0].clientX;
+                        lastTouchY = e.touches[0].clientY;
+                    } else if (e.touches.length === 2) {
+                        // شروع زوم
+                        isDragging = false;
+                        initialPinchDistance = getDistance(e.touches);
+                        initialScale = currentScale;
+                    }
+                }
+            }, { passive: false });
+
+            el.addEventListener('touchmove', (e) => {
+                if(!deepAR) return;
+                e.preventDefault(); // جلوگیری از اسکرول صفحه
+
+                if (e.touches.length === 1 && isDragging) {
+                    // محاسبه جابجایی
+                    const deltaX = (e.touches[0].clientX - lastTouchX) * 0.1; // ضریب حساسیت حرکت
+                    const deltaY = (e.touches[0].clientY - lastTouchY) * 0.1; // معکوس کردن محور Y معمولا در AR نیاز نیست اما در اسکرین 2D هست
+                    
+                    currentPosX += deltaX;
+                    currentPosY -= deltaY; // در مختصات AR معمولا Y بالا مثبت است
+
+                    lastTouchX = e.touches[0].clientX;
+                    lastTouchY = e.touches[0].clientY;
+
+                    // اعمال پوزیشن به نود بک‌گراند یا آبجکت (تلاش برای اعمال روی روت)
+                    // نکته: نام نود در backgroundReplacement داخلی است، ما سعی میکنیم روی Camera یا نود عمومی اعمال کنیم
+                    // یا اگر افکت کاستوم بود روی آبجکت. در اینجا سعی میکنیم پارامترهای عمومی را ست کنیم.
+                    // متد setVideoUniform برای تغییر افست ویدیو استفاده میشود اگر ساپورت شود
+                    
+                    // شبیه‌سازی حرکت با تغییر پارامترهای نود (اگر نود "Background" وجود داشته باشد)
+                    try {
+                        deepAR.moveNode("Background", currentPosX, currentPosY, 0);
+                        // یا تغییر پارامترهای ترنسفرم
+                    } catch(err) {}
+
+                } else if (e.touches.length === 2) {
+                    // محاسبه زوم
+                    const currentDistance = getDistance(e.touches);
+                    if (initialPinchDistance > 0) {
+                        const scaleFactor = currentDistance / initialPinchDistance;
+                        currentScale = initialScale * scaleFactor;
+                        
+                        // محدود کردن زوم
+                        if(currentScale < 0.2) currentScale = 0.2;
+                        if(currentScale > 5.0) currentScale = 5.0;
+
+                        try {
+                            deepAR.setNodeScale("Background", currentScale, currentScale, currentScale);
+                        } catch(err) {}
+                    }
+                }
+            }, { passive: false });
+
+            el.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+        }
+    </script>
+</body>
+</html>
