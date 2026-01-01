@@ -1,0 +1,715 @@
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>AR Gallery Pro - LiteGL Optimized</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    
+    <link href="css/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
+    <script src="js/litegl.min.js"></script>
+    <script src="js/mediapipe/selfie_segmentation.js" defer></script>
+    
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; margin: 0; overflow: hidden; background-color: #000; user-select: none; -webkit-tap-highlight-color: transparent; color: white; }
+        #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; transition: opacity 0.3s; }
+        .ui-hidden #ui-layer { opacity: 0; pointer-events: none; }
+        .ui-top-bar { padding: 15px; display: flex; justify-content: space-between; pointer-events: auto; padding-top: env(safe-area-inset-top, 20px); }
+        .ui-top-bar-left, .ui-top-bar-right { display: flex; gap: 10px; }
+        .ui-bottom-controls { padding: 10px 15px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: auto; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; box-sizing: border-box; padding-bottom: calc(20px + env(safe-area-inset-bottom, 10px)); }
+        .btn-icon { background: rgba(40, 40, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s, background 0.3s; pointer-events: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.3); padding: 0; margin: 0; }
+        .btn-icon:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.3); }
+        .btn-icon.active-mode { background: #3b82f6; border-color: #60a5fa; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        .btn-icon.exit-mode { background: rgba(220, 38, 38, 0.8); border-color: #f87171; }
+        .hidden { display: none !important; }
+        .btn-label { background: #2563eb; color: white; padding: 8px 16px; border-radius: 30px; display: flex; align-items: center; gap: 10px; font-weight: bold; cursor: pointer; transition: transform 0.2s; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-size: 0.9rem; }
+        .btn-label:active { transform: scale(0.95); }
+        .controls-row { display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 40px; flex-wrap: wrap; justify-content: center; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -6px; border: 1px solid white; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #4b5563; border-radius: 2px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; display: none; justify-content: center; align-items: center; padding: 20px; pointer-events: auto; box-sizing: border-box; backdrop-filter: blur(5px); }
+        .modal-content { background: #1f2937; color: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; border: 1px solid #374151; text-align: right; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #374151; padding-bottom: 10px; }
+        .modal-title { font-size: 1.1rem; font-weight: bold; color: #60a5fa; margin: 0; }
+        #temp-reveal-btn { position: fixed; top: 80px; right: 20px; z-index: 100; display: none; padding: 12px 25px; background: rgba(37, 99, 235, 0.9); color: white; font-weight: bold; font-size: 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); pointer-events: auto; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        #touch-status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 10px 20px; border-radius: 20px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 20; font-size: 0.9rem; }
+        .radio-group { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
+        .radio-item { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .radio-item:hover { background: rgba(255,255,255,0.1); }
+        .radio-item input { width: 20px; height: 20px; accent-color: #3b82f6; }
+        #ar-container { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1; }
+        #custom-ar-btn { position: absolute; bottom: 80px; right: 30px; padding: 12px 30px; border: 1px solid rgba(255,255,255,0.5); border-radius: 25px; background: rgba(0,0,0,0.7); color: white; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: bold; z-index: 50; cursor: pointer; box-shadow: 0 0 15px rgba(0,0,0,0.5); transition: all 0.2s; }
+        #custom-ar-btn:active { transform: scale(0.95); background: rgba(37, 99, 235, 0.8); }
+        .w-full { width: 100%; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .gap-3 { gap: 12px; }
+        .text-xs { font-size: 0.75rem; }
+        .text-white { color: white; }
+        .bg-black\/60 { background-color: rgba(0,0,0,0.6); }
+        .rounded-full { border-radius: 9999px; }
+        .p-2 { padding: 0.5rem; }
+        .flex-grow { flex-grow: 1; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 0.5rem; } 
+        .justify-end { justify-content: flex-end; }
+        .flex-col { flex-direction: column; }
+        #cube-shape-btn { width: 50px; height: 50px; }
+        #cube-shape-btn svg { width: 26px; height: 26px; }
+    </style>
+</head>
+<body id="app-body">
+
+    <div id="ar-container"></div>
+    <div id="touch-status">وضعیت</div>
+    <button id="custom-ar-btn">ورود به حالت تمام صفحه (LiteGL)</button>
+    <button id="temp-reveal-btn">آشکارسازی دکمه‌ها</button>
+
+    <div id="ui-layer">
+        <div class="ui-top-bar">
+            <div class="ui-top-bar-left">
+                <button id="exit-btn" class="btn-icon exit-mode" title="برگشت">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/></svg>
+                </button>
+                <button id="about-btn" class="btn-icon" title="درباره ما"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg></button>
+                <button id="help-btn" class="btn-icon" title="راهنما"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/></svg></button>
+                <button id="settings-btn" class="btn-icon" title="تنظیمات"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1-1.255-.52l-.094-.319z"/></svg></button>
+            </div>
+            <div class="ui-top-bar-right">
+                <button id="clean-view-btn" class="btn-icon hidden" title="پنهان شدن دکمه‌ها"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg></button>
+                <button id="fullscreen-btn" class="btn-icon hidden" title="تمام صفحه"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/></svg></button>
+            </div>
+        </div>
+
+        <div class="ui-bottom-controls">
+            <div id="dist-container" class="w-full px-8 hidden mb-2">
+                <div class="flex items-center gap-3 w-full bg-black/60 p-2 rounded-full border border-gray-600">
+                    <span class="text-xs text-yellow-400 font-bold whitespace-nowrap">فاصله:</span>
+                    <input type="range" id="dist-slider" min="0.5" max="10.0" value="2.0" step="0.1" class="flex-grow">
+                </div>
+            </div>
+
+            <div id="seek-container" class="w-full px-8 hidden mb-2">
+                <div class="flex items-center gap-2 w-full bg-black/40 p-2 rounded-full">
+                    <span id="current-time" class="text-xs text-white min-w-[35px] text-center">0:00</span>
+                    <input type="range" id="seek-bar" min="0" value="0" step="0.1" class="flex-grow">
+                    <span id="duration-time" class="text-xs text-white min-w-[35px] text-center">0:00</span>
+                </div>
+            </div>
+            
+            <div class="w-full flex justify-end px-8 mb-4">
+                <label id="file-label" class="btn-label">
+                    <span>انتخاب ویدیو یا عکس</span>
+                    <input type="file" id="file-input" accept="video/*,image/*" style="display: none;">
+                </label>
+            </div>
+
+            <div id="controls-panel" class="flex flex-col gap-3 items-center hidden w-full">
+                <div class="controls-row">
+                    <button id="play-btn" class="btn-icon" style="width: 50px; height: 50px; background: #2563eb; display:none;">
+                         <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M6.271 5.055a.5.5 0 0 1 .52.038l3.5 2.5a.5.5 0 0 1 0 .814l-3.5 2.5A.5.5 0 0 1 6 10.5v-5a.5.5 0 0 1 .271-.445z"/></svg>
+                         <svg id="pause-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M5 6.25a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5zm3.5 0a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5z"/></svg>
+                    </button>
+                    <button id="remove-bg-btn" class="btn-icon" title="حذف بکگراند (اشخاص)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5Z"/></svg></button>
+                </div>
+                <div id="size-controls" class="controls-row mt-2">
+                    <button id="reset-btn" class="btn-icon" title="بازنشانی کامل"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg></button>
+                    <button id="cube-shape-btn" class="btn-icon" title="تبدیل به مکعب سه بعدی"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2l-2.218-.887zm3.564 1.426L5.596 5 8 5.961 14.154 3.5l-2.404-.961zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/></svg></button>
+                    <button id="mode-3d-btn" class="btn-icon" title="چرخش ۳ بعدی"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/><path d="M8 1a.5.5 0 0 1 .5.5v14a.5.5 0 0 1-1 0v-14A.5.5 0 0 1 8 1z" opacity="0.5"/><path d="M1 8a.5.5 0 0 1 .5-.5h14a.5.5 0 0 1 0 1h-14A.5.5 0 0 1 1 8z" opacity="0.5"/></svg></button>
+                    <button id="rotate-btn" class="btn-icon" title="چرخش 90 درجه"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg></button>
+                    <button id="aspect-btn" class="btn-icon" title="نسبت تصویر"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M5 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H5zm6 10H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1z"/></svg></button>
+                    <button id="stretch-btn" class="btn-icon" title="تغییر سایز آزاد"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8z"/><path fill-rule="evenodd" d="M13.5 12.5a.5.5 0 0 1 0-1l2 1.5-2 1.5a.5.5 0 0 1 0-1V12.5zM2.5 12.5V13a.5.5 0 0 1 0 1l-2-1.5 2-1.5a.5.5 0 0 1 0 1v.5z"/><path d="M2.5 3.5a.5.5 0 0 1 0 1l-2-1.5 2-1.5a.5.5 0 0 1 0 1v.5zm11 0v-.5a.5.5 0 0 1 0-1l2 1.5-2 1.5a.5.5 0 0 1 0-1v-.5z"/></svg></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">تنظیمات آشکارسازی</h3>
+                <button id="close-settings-btn" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
+            </div>
+            <p style="font-size: 0.9rem; color: #ccc;">نحوه نمایش دوباره دکمه‌ها را انتخاب کنید:</p>
+            <div class="radio-group">
+                <label class="radio-item"><input type="radio" name="reveal-mode" value="button" checked><span>نمایش دکمه موقت با لمس (۲ ثانیه)</span></label>
+                <label class="radio-item"><input type="radio" name="reveal-mode" value="gesture"><span>چهار انگشت همزمان روی صفحه</span></label>
+            </div>
+        </div>
+    </div>
+    
+    <div id="about-modal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <div class="modal-header" style="justify-content: center; position: relative;">
+                <h3 class="modal-title" style="font-size: 1.3rem;">درباره ما</h3>
+                <button id="close-about-btn" style="background:none; border:none; color:white; font-size:1.5rem; position: absolute; left: 0;">&times;</button>
+            </div>
+            <div style="padding: 20px 0;">
+                <p style="font-size: 1rem;">ساخته شده با LiteGL.js</p>
+                <p style="font-size: 0.8rem; color: #aaa;">نسخه بهینه شده برای اجرا با فایل محلی</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">راهنمای LiteGL</h3>
+                <button id="close-help-btn" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <ul style="list-style-type: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
+                    <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. شروع کار:</strong> ابتدا با دکمه آبی فایل را انتخاب کنید. این نسخه از موتور سبک LiteGL استفاده می‌کند.</li>
+                    <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. جابجایی:</strong><br>• <span>یک انگشت:</span> جابجایی تصویر.<br>• <span>دو انگشت:</span> زوم و چرخش.</li>
+                    <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>3. بهینه‌سازی:</strong> این نسخه به شدت سبک‌تر است و از باتری کمتری استفاده می‌کند.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // جلوگیری از ارسال فرم پیش‌فرض و مدیریت تاریخچه
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+
+        // توابع کمکی رابط کاربری
+        function formatTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s < 10 ? '0' : ''}${s}`; }
+        function showToast(msg) { touchStatus.innerText = msg; touchStatus.style.opacity = '1'; setTimeout(() => { touchStatus.style.opacity = '0'; }, 2500); }
+        
+        // متغیرهای سراسری LiteGL
+        let gl, mesh = null, texture = null, shader = null;
+        let currentVideo = null, isBgRemovalActive = false;
+        let selfieSegmentation = null, segmentationCanvas = null, segmentationCtx = null;
+        let originalTexture = null, processedTexture = null;
+        let isProcessing = false, lastProcessTime = 0;
+        
+        // متغیرهای وضعیت (State Variables)
+        let transform = {
+            pos: vec3.fromValues(0, 0, -2),
+            rot: vec3.fromValues(0, 0, 0),
+            scale: vec3.fromValues(1, 1, 1)
+        };
+        let initialTransform = { pos: vec3.create(), rot: 0, scale: vec3.create() };
+        let isDragging = false, lastMouse = [0,0];
+        let isCubeMode = false, isStretchMode = false, is3DMode = false;
+        let aspectRatioMode = 0; // 0:Normal, 1:Wide, 2:Tall, 3:Big
+        let uiHidden = false;
+        let revealMode = 'button';
+        let revealTimer = null;
+        
+        // عناصر DOM
+        const uiLayer = document.getElementById('ui-layer');
+        const fileInput = document.getElementById('file-input');
+        const fileLabel = document.getElementById('file-label');
+        const controlsPanel = document.getElementById('controls-panel');
+        const cleanViewBtn = document.getElementById('clean-view-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const distContainer = document.getElementById('dist-container');
+        const seekContainer = document.getElementById('seek-container');
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const seekBar = document.getElementById('seek-bar');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationTimeEl = document.getElementById('duration-time');
+        const touchStatus = document.getElementById('touch-status');
+        const distSlider = document.getElementById('dist-slider');
+        const tempRevealBtn = document.getElementById('temp-reveal-btn');
+        const removeBgBtn = document.getElementById('remove-bg-btn');
+        const customArBtn = document.getElementById('custom-ar-btn');
+        const cubeShapeBtn = document.getElementById('cube-shape-btn');
+        
+        // راه‌اندازی اولیه
+        function init() {
+            // ایجاد کانتکست LiteGL
+            gl = GL.create({
+                container: document.getElementById('ar-container'),
+                alpha: true,
+                depth: true,
+                antialias: true
+            });
+            gl.canvas.width = window.innerWidth;
+            gl.canvas.height = window.innerHeight;
+            
+            // تنظیمات اولیه WebGL
+            gl.clearColor(0, 0, 0, 0); // پس‌زمینه شفاف
+            gl.enable(gl.DEPTH_TEST);
+            
+            // رویداد تغییر سایز پنجره
+            gl.captureMouse(true);
+            gl.captureTouch(true);
+            
+            window.addEventListener('resize', () => {
+                gl.canvas.width = window.innerWidth;
+                gl.canvas.height = window.innerHeight;
+                gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            });
+
+            setupUIListeners();
+            setupLiteGLLoop();
+        }
+
+        // حلقه اصلی رندر LiteGL
+        function setupLiteGLLoop() {
+            gl.ondraw = function() {
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                
+                if (!mesh || !shader) return;
+
+                // تنظیم دوربین
+                var projection = mat4.create();
+                var view = mat4.create();
+                mat4.perspective(projection, 45 * DEG2RAD, gl.canvas.width / gl.canvas.height, 0.1, 100);
+                
+                // ایجاد ماتریس مدل
+                var model = mat4.create();
+                mat4.translate(model, model, transform.pos);
+                // چرخش‌ها
+                mat4.rotateX(model, model, transform.rot[0]);
+                mat4.rotateY(model, model, transform.rot[1]);
+                mat4.rotateZ(model, model, transform.rot[2]);
+                // مقیاس
+                mat4.scale(model, model, transform.scale);
+
+                // ترکیب ماتریس‌ها
+                var mvp = mat4.create();
+                mat4.multiply(mvp, projection, view); // View is identity here (camera at 0,0,0)
+                mat4.multiply(mvp, mvp, model);
+
+                // بایند کردن تکسچر
+                var currentTex = isBgRemovalActive && processedTexture ? processedTexture : texture;
+                if(currentTex) currentTex.bind(0);
+
+                // آپدیت تکسچر ویدیو اگر نیاز باشد
+                if (currentVideo && !currentVideo.paused && texture) {
+                   // LiteGL به طور خودکار ویدیو را آپدیت نمی‌کند، باید دستی انجام شود
+                   texture.uploadImage(currentVideo); 
+                   if(isBgRemovalActive) processVideoFrame();
+                }
+
+                // ارسال متغیرها به شیدر
+                shader.uniforms({
+                    u_mvp: mvp,
+                    u_texture: 0,
+                    u_color: [1, 1, 1, 1]
+                });
+
+                // رسم مش
+                shader.draw(mesh);
+            };
+
+            gl.animate();
+        }
+
+        // توابع مدیریت فایل و محتوا
+        function cleanScene() {
+            mesh = null;
+            if (texture) { gl.deleteTexture(texture.handler); texture = null; }
+            if (currentVideo) { currentVideo.pause(); currentVideo = null; }
+            isBgRemovalActive = false;
+            removeBgBtn.classList.remove('active-mode');
+            isCubeMode = false;
+            cubeShapeBtn.classList.remove('active-mode');
+            transform.rot = vec3.fromValues(0,0,0);
+            transform.scale = vec3.fromValues(1,1,1);
+            
+            // بازنشانی UI
+            seekContainer.classList.add('hidden');
+            playBtn.style.display = 'none';
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            cleanScene();
+            
+            const url = URL.createObjectURL(file);
+            const fileType = file.type.split('/')[0];
+            
+            controlsPanel.classList.remove('hidden');
+            controlsPanel.classList.add('flex');
+            cleanViewBtn.classList.remove('hidden');
+            fullscreenBtn.classList.remove('hidden');
+            distContainer.classList.remove('hidden');
+            fileLabel.querySelector('span').innerText = "تغییر فایل";
+
+            // استفاده از شیدر پیش‌فرض تکسچر LiteGL (یا ساختن یکی)
+            // شیدر ساده برای نمایش تکسچر
+            shader = new GL.Shader(
+                `precision highp float;
+                attribute vec3 a_vertex;
+                attribute vec2 a_coord;
+                varying vec2 v_coord;
+                uniform mat4 u_mvp;
+                void main() {
+                    v_coord = a_coord;
+                    gl_Position = u_mvp * vec4(a_vertex, 1.0);
+                }`,
+                `precision highp float;
+                varying vec2 v_coord;
+                uniform sampler2D u_texture;
+                uniform vec4 u_color;
+                void main() {
+                    gl_FragColor = u_color * texture2D(u_texture, v_coord);
+                }`
+            );
+
+            if (fileType === 'image') {
+                // بارگذاری تصویر با LiteGL
+                texture = GL.Texture.fromURL(url, {
+                    minFilter: gl.LINEAR_MIPMAP_LINEAR,
+                    magFilter: gl.LINEAR,
+                    wrap: gl.CLAMP_TO_EDGE
+                }, function(tex) {
+                    createMesh(tex.width, tex.height);
+                    showToast("تصویر بارگذاری شد");
+                });
+            } else if (fileType === 'video') {
+                const video = document.createElement('video');
+                video.src = url;
+                video.crossOrigin = 'anonymous';
+                video.loop = true;
+                video.playsInline = true;
+                video.muted = false;
+                
+                video.addEventListener('loadedmetadata', function() {
+                    seekBar.max = video.duration;
+                    durationTimeEl.innerText = formatTime(video.duration);
+                    
+                    // ایجاد تکسچر از ویدیو
+                    texture = GL.Texture.fromVideo(video, {
+                        minFilter: gl.LINEAR,
+                        magFilter: gl.LINEAR,
+                        wrap: gl.CLAMP_TO_EDGE
+                    });
+                    
+                    createMesh(video.videoWidth, video.videoHeight);
+                    
+                    // نمایش کنترل‌های ویدیو
+                    seekContainer.classList.remove('hidden');
+                    playBtn.style.display = 'flex';
+                    playIcon.classList.remove('hidden');
+                    pauseIcon.classList.add('hidden');
+                    currentVideo = video;
+                    showToast("ویدیو آماده شد");
+                });
+                
+                video.addEventListener('timeupdate', () => {
+                   seekBar.value = video.currentTime;
+                   currentTimeEl.innerText = formatTime(video.currentTime);
+                });
+            }
+            event.target.value = '';
+        }
+
+        function createMesh(width, height) {
+            const aspectRatio = width / height;
+            // ایجاد یک صفحه (Plane) ساده
+            // در LiteGL از GL.Mesh.plane استفاده می‌کنیم
+            // تنظیم ابعاد بر اساس نسبت تصویر
+            const h = 1.0;
+            const w = h * aspectRatio;
+            
+            // ذخیره ابعاد اصلی برای تغییر حالت
+            mesh = GL.Mesh.plane({width: w, height: h, detail: 1, coords: true}); 
+            // در LiteGL صفحه معمولا در XZ است، باید بچرخانیم یا از plane2D استفاده کنیم که XY است
+            // یا دستی مختصات UV را تنظیم کنیم. plane استاندارد LiteGL رو به بالا (Y) است.
+            // بیایید از plane معمولی استفاده کنیم و در transform بچرخانیم
+            transform.rot[0] = 90 * DEG2RAD; // چرخش اولیه برای رو به دوربین شدن
+        }
+
+        // منطق حذف پس‌زمینه (MediaPipe)
+        function initMediaPipe() {
+            if (window.SelfieSegmentation && !selfieSegmentation) {
+                selfieSegmentation = new SelfieSegmentation({locateFile: (file) => `js/mediapipe/${file}`});
+                selfieSegmentation.setOptions({ modelSelection: 0, selfieMode: false });
+                selfieSegmentation.onResults(onSegmentationResults);
+                
+                segmentationCanvas = document.createElement('canvas');
+                segmentationCtx = segmentationCanvas.getContext('2d');
+            }
+        }
+
+        async function toggleBgRemoval() {
+            if (!mesh || !texture) return;
+            if (!selfieSegmentation) {
+                showToast("در حال راه‌اندازی هوش مصنوعی...");
+                initMediaPipe();
+                setTimeout(toggleBgRemoval, 1000);
+                return;
+            }
+            
+            isBgRemovalActive = !isBgRemovalActive;
+            removeBgBtn.classList.toggle('active-mode', isBgRemovalActive);
+            
+            if (isBgRemovalActive) {
+                showToast("حذف پس‌زمینه فعال");
+                let w = currentVideo ? currentVideo.videoWidth : texture.width;
+                let h = currentVideo ? currentVideo.videoHeight : texture.height;
+                // کاهش رزولوشن برای عملکرد بهتر
+                const targetRes = 360;
+                if (w > targetRes) {
+                   const scale = targetRes / w;
+                   w = targetRes;
+                   h = Math.floor(h * scale);
+                }
+                segmentationCanvas.width = w;
+                segmentationCanvas.height = h;
+                
+                // ایجاد تکسچر برای نتیجه
+                if(!processedTexture) {
+                    processedTexture = new GL.Texture(w, h, { format: gl.RGBA, minFilter: gl.LINEAR });
+                }
+
+                if (!currentVideo && texture.img) {
+                    await selfieSegmentation.send({image: texture.img});
+                }
+            } else {
+                showToast("حذف پس‌زمینه غیرفعال");
+            }
+        }
+
+        function onSegmentationResults(results) {
+            if (!isBgRemovalActive) { isProcessing = false; return; }
+            segmentationCtx.save();
+            segmentationCtx.clearRect(0, 0, segmentationCanvas.width, segmentationCanvas.height);
+            segmentationCtx.drawImage(results.segmentationMask, 0, 0, segmentationCanvas.width, segmentationCanvas.height);
+            segmentationCtx.globalCompositeOperation = 'source-in';
+            segmentationCtx.drawImage(results.image, 0, 0, segmentationCanvas.width, segmentationCanvas.height);
+            segmentationCtx.restore();
+            
+            if (processedTexture) {
+                processedTexture.uploadImage(segmentationCanvas);
+            }
+            isProcessing = false;
+        }
+
+        async function processVideoFrame() {
+            if (!isProcessing && isBgRemovalActive && currentVideo) {
+                const now = performance.now();
+                if(now - lastProcessTime > 100) { // محدود کردن FPS پردازش
+                   isProcessing = true;
+                   lastProcessTime = now;
+                   await selfieSegmentation.send({image: currentVideo});
+                }
+            }
+        }
+
+        // لیسنرهای UI
+        function setupUIListeners() {
+            fileInput.addEventListener('change', handleFileSelect);
+            fileInput.addEventListener('click', (e) => { e.stopPropagation(); });
+            
+            exitBtn.addEventListener('click', () => window.history.back());
+            cleanViewBtn.addEventListener('click', () => { uiHidden = true; document.body.classList.add('ui-hidden'); showToast("منوها پنهان شدند"); });
+            tempRevealBtn.addEventListener('click', () => { uiHidden = false; document.body.classList.remove('ui-hidden'); tempRevealBtn.style.display = 'none'; });
+            
+            // مودال‌ها
+            document.getElementById('about-btn').addEventListener('click', () => document.getElementById('about-modal').style.display = 'flex');
+            document.getElementById('close-about-btn').addEventListener('click', () => document.getElementById('about-modal').style.display = 'none');
+            document.getElementById('help-btn').addEventListener('click', () => document.getElementById('help-modal').style.display = 'flex');
+            document.getElementById('close-help-btn').addEventListener('click', () => document.getElementById('help-modal').style.display = 'none');
+            document.getElementById('settings-btn').addEventListener('click', () => document.getElementById('settings-modal').style.display = 'flex');
+            document.getElementById('close-settings-btn').addEventListener('click', () => document.getElementById('settings-modal').style.display = 'none');
+            
+            // کنترل‌های ویدیو
+            playBtn.addEventListener('click', () => {
+                if (currentVideo) {
+                    if (currentVideo.paused) {
+                        currentVideo.play();
+                        playIcon.classList.add('hidden');
+                        pauseIcon.classList.remove('hidden');
+                    } else {
+                        currentVideo.pause();
+                        playIcon.classList.remove('hidden');
+                        pauseIcon.classList.add('hidden');
+                    }
+                }
+            });
+            seekBar.addEventListener('input', () => { if (currentVideo) currentVideo.currentTime = seekBar.value; });
+            
+            // کنترل‌های 3D
+            distSlider.addEventListener('input', (e) => {
+               transform.pos[2] = -parseFloat(e.target.value); 
+            });
+            
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                if(mesh) {
+                    transform.pos = vec3.fromValues(0,0,-2);
+                    transform.rot = vec3.fromValues(90 * DEG2RAD,0,0);
+                    transform.scale = vec3.fromValues(1,1,1);
+                    distSlider.value = 2.0;
+                    is3DMode = false; document.getElementById('mode-3d-btn').classList.remove('active-mode');
+                    isStretchMode = false; document.getElementById('stretch-btn').classList.remove('active-mode');
+                    showToast("بازنشانی شد");
+                }
+            });
+            
+            document.getElementById('mode-3d-btn').addEventListener('click', function() {
+                is3DMode = !is3DMode;
+                this.classList.toggle('active-mode', is3DMode);
+                showToast(is3DMode ? "چرخش ۳ بعدی" : "حالت جابجایی");
+            });
+
+            document.getElementById('rotate-btn').addEventListener('click', () => {
+                transform.rot[2] -= Math.PI / 2;
+            });
+            
+            document.getElementById('aspect-btn').addEventListener('click', () => {
+                aspectRatioMode = (aspectRatioMode + 1) % 4;
+                const s = [1, 1.5, 1.5, 2];
+                if(aspectRatioMode === 1) transform.scale[0] = 1.5; else transform.scale[0] = 1;
+                if(aspectRatioMode === 2) transform.scale[2] = 1.5; else transform.scale[2] = 1; // Z is Y in Plane geometry logic here? No, LiteGL plane is XZ.
+                // LiteGL Plane is XZ, Rotated 90deg X to face camera. So Width is X, Height is Z (local).
+                if(aspectRatioMode === 3) { transform.scale[0] = 2; transform.scale[2] = 2; }
+                showToast("تغییر نسبت تصویر");
+            });
+
+            document.getElementById('stretch-btn').addEventListener('click', function() {
+                isStretchMode = !isStretchMode;
+                this.classList.toggle('active-mode', isStretchMode);
+                showToast(isStretchMode ? "تغییر سایز آزاد" : "تغییر سایز قفل");
+            });
+            
+            cubeShapeBtn.addEventListener('click', () => {
+                if(!mesh) return;
+                isCubeMode = !isCubeMode;
+                cubeShapeBtn.classList.toggle('active-mode', isCubeMode);
+                if(isCubeMode) {
+                    mesh = GL.Mesh.cube({size: 1}); // مکعب واحد
+                    showToast("حالت مکعب");
+                } else {
+                     // بازگشت به صفحه (نیاز به بازسازی نسبت تصویر دارد)
+                     // برای سادگی یک صفحه پیش‌فرض میسازیم، در واقعیت باید نسبت تصویر قبلی را نگه داریم
+                     let w = 1, h = 1;
+                     if(texture) {
+                         const aspect = texture.width / texture.height;
+                         w = aspect; 
+                     }
+                     mesh = GL.Mesh.plane({width: w, height: 1, coords: true});
+                     showToast("حالت تخت");
+                }
+            });
+            
+            removeBgBtn.addEventListener('click', toggleBgRemoval);
+            
+            // دکمه "ورود به AR" (اکنون فقط حالت تمام صفحه است)
+            customArBtn.addEventListener('click', () => {
+                if(!mesh) { showToast("ابتدا فایل انتخاب کنید"); return; }
+                if (gl.canvas.requestFullscreen) gl.canvas.requestFullscreen();
+                else if (gl.canvas.webkitRequestFullscreen) gl.canvas.webkitRequestFullscreen();
+                
+                // پنهان کردن UI غیر ضروری
+                uiHidden = true;
+                document.body.classList.add('ui-hidden');
+                customArBtn.style.display = 'none';
+                showToast("حالت تمام صفحه فعال شد");
+            });
+
+            setupGestures();
+        }
+        
+        // مدیریت تاچ (Gestures) برای LiteGL
+        function setupGestures() {
+            let initialPinchDist = 0;
+            let initialScaleVec = vec3.create();
+            
+            gl.onmousedown = function(e) {
+                isDragging = true;
+                lastMouse = [e.canvasx, e.canvasy];
+            };
+            
+            gl.onmousemove = function(e) {
+                if(isDragging && mesh) {
+                    var dx = e.canvasx - lastMouse[0];
+                    var dy = e.canvasy - lastMouse[1];
+                    
+                    if (is3DMode) {
+                        transform.rot[1] += dx * 0.01;
+                        transform.rot[0] += dy * 0.01;
+                    } else {
+                        // جابجایی در صفحه (Screen Space to World approx)
+                        transform.pos[0] += dx * 0.005;
+                        transform.pos[1] -= dy * 0.005; 
+                    }
+                    lastMouse = [e.canvasx, e.canvasy];
+                }
+            };
+            
+            gl.onmouseup = function() { isDragging = false; };
+            
+            // تاچ (موبایل)
+            // LiteGL events for touch are generic, better use native listeners on canvas
+            const canvas = gl.canvas;
+            
+            canvas.addEventListener('touchstart', (e) => {
+                if(e.touches.length === 1) {
+                    isDragging = true;
+                    lastMouse = [e.touches[0].clientX, e.touches[0].clientY];
+                }
+                if(e.touches.length === 2) {
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    initialPinchDist = Math.sqrt(dx*dx + dy*dy);
+                    vec3.copy(initialScaleVec, transform.scale);
+                }
+                // آشکارسازی دکمه‌ها
+                if(uiHidden) {
+                    if(revealMode === 'gesture' && e.touches.length === 4) {
+                         uiHidden = false; document.body.classList.remove('ui-hidden');
+                    } else if (revealMode === 'button') {
+                        tempRevealBtn.style.display = 'block';
+                        if(revealTimer) clearTimeout(revealTimer);
+                        revealTimer = setTimeout(() => tempRevealBtn.style.display = 'none', 2000);
+                    }
+                }
+            });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                if(e.touches.length === 1 && isDragging) {
+                    e.preventDefault();
+                    var dx = e.touches[0].clientX - lastMouse[0];
+                    var dy = e.touches[0].clientY - lastMouse[1];
+                    if (is3DMode) {
+                        transform.rot[1] += dx * 0.01;
+                        transform.rot[0] += dy * 0.01;
+                    } else {
+                        transform.pos[0] += dx * 0.005;
+                        transform.pos[1] -= dy * 0.005;
+                    }
+                    lastMouse = [e.touches[0].clientX, e.touches[0].clientY];
+                }
+                if(e.touches.length === 2 && mesh) {
+                    e.preventDefault();
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    const scaleFactor = dist / initialPinchDist;
+                    
+                    if (isStretchMode) {
+                        // تغییر سایز ساده
+                        transform.scale[0] = initialScaleVec[0] * scaleFactor;
+                        transform.scale[2] = initialScaleVec[2] * scaleFactor; // Plane Z is height locally
+                    } else {
+                        vec3.scale(transform.scale, initialScaleVec, scaleFactor);
+                    }
+                }
+            }, {passive: false});
+            
+            canvas.addEventListener('touchend', () => { isDragging = false; });
+        }
+
+        // شروع برنامه
+        init();
+
+    </script>
+</body>
+</html>
