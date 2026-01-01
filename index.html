@@ -1,0 +1,661 @@
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>AR Gallery Pro - Fixed Buttons</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    
+    <link href="css/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
+    <script src="js/litegl.min.js"></script>
+    <script src="js/mediapipe/selfie_segmentation.js" defer></script>
+    
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; margin: 0; overflow: hidden; background-color: #000; user-select: none; -webkit-tap-highlight-color: transparent; color: white; }
+        
+        /* بوم اصلی زیر همه چیز */
+        #ar-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        canvas { display: block; width: 100%; height: 100%; touch-action: none; } 
+
+        /* لایه رابط کاربری - بسیار مهم: z-index بالا */
+        #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; transition: opacity 0.3s; }
+        .ui-hidden #ui-layer { opacity: 0; pointer-events: none; }
+
+        .ui-top-bar { padding: 15px; display: flex; justify-content: space-between; pointer-events: none; padding-top: env(safe-area-inset-top, 20px); }
+        
+        /* دکمه‌ها باید pointer-events: auto داشته باشند تا کلیک شوند */
+        .ui-top-bar button, .ui-bottom-controls button, .ui-bottom-controls input, .ui-bottom-controls label { pointer-events: auto !important; }
+        
+        /* اصلاح مهم: آیکون‌ها نباید کلیک را دریافت کنند تا دکمه درست کار کند */
+        button svg { pointer-events: none; }
+
+        .ui-bottom-controls { padding: 10px 15px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: none; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; box-sizing: border-box; padding-bottom: calc(20px + env(safe-area-inset-bottom, 10px)); }
+        
+        .btn-icon { background: rgba(40, 40, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s, background 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.3); padding: 0; margin: 0; }
+        .btn-icon:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.3); }
+        .btn-icon.active-mode { background: #3b82f6; border-color: #60a5fa; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        .btn-icon.exit-mode { background: rgba(220, 38, 38, 0.8); border-color: #f87171; }
+        
+        .hidden { display: none !important; }
+        
+        .btn-label { background: #2563eb; color: white; padding: 8px 16px; border-radius: 30px; display: flex; align-items: center; gap: 10px; font-weight: bold; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-size: 0.9rem; pointer-events: auto !important; }
+        .btn-label:active { transform: scale(0.95); }
+        
+        .controls-row { display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 40px; flex-wrap: wrap; justify-content: center; pointer-events: auto; }
+        
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #3b82f6; margin-top: -6px; border: 1px solid white; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #4b5563; border-radius: 2px; }
+        
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; pointer-events: auto; backdrop-filter: blur(5px); }
+        .modal-content { background: #1f2937; color: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; border: 1px solid #374151; text-align: right; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #374151; padding-bottom: 10px; }
+        
+        #temp-reveal-btn { position: fixed; top: 80px; right: 20px; z-index: 1500; display: none; padding: 12px 25px; background: rgba(37, 99, 235, 0.9); color: white; font-weight: bold; border-radius: 30px; pointer-events: auto; }
+        #touch-status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 10px 20px; border-radius: 20px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 1500; }
+        
+        #custom-ar-btn { position: absolute; bottom: 80px; right: 30px; padding: 12px 30px; border: 1px solid rgba(255,255,255,0.5); border-radius: 25px; background: rgba(0,0,0,0.7); color: white; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: bold; z-index: 1100; cursor: pointer; pointer-events: auto; }
+        
+        .radio-group { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
+        .radio-item { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
+        
+        #file-input { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="ar-container"></div>
+    <div id="touch-status">وضعیت</div>
+    <button id="custom-ar-btn">حالت تمام صفحه</button>
+    <button id="temp-reveal-btn">آشکارسازی دکمه‌ها</button>
+
+    <div id="ui-layer">
+        <div class="ui-top-bar">
+            <div class="ui-top-bar-left">
+                <button id="exit-btn" class="btn-icon exit-mode" title="برگشت">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/></svg>
+                </button>
+                <button id="about-btn" class="btn-icon" title="درباره ما"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg></button>
+                <button id="help-btn" class="btn-icon" title="راهنما"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/></svg></button>
+                <button id="settings-btn" class="btn-icon" title="تنظیمات"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1-1.255-.52l-.094-.319z"/></svg></button>
+            </div>
+            <div class="ui-top-bar-right">
+                <button id="clean-view-btn" class="btn-icon hidden" title="پنهان شدن دکمه‌ها"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg></button>
+                <button id="fullscreen-btn" class="btn-icon hidden" title="تمام صفحه"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/></svg></button>
+            </div>
+        </div>
+
+        <div class="ui-bottom-controls">
+            <div id="dist-container" class="w-full px-8 hidden mb-2">
+                <div class="flex items-center gap-3 w-full bg-black/60 p-2 rounded-full border border-gray-600">
+                    <span class="text-xs text-yellow-400 font-bold whitespace-nowrap">فاصله:</span>
+                    <input type="range" id="dist-slider" min="0.5" max="8.0" value="3.0" step="0.1" class="flex-grow">
+                </div>
+            </div>
+
+            <div id="seek-container" class="w-full px-8 hidden mb-2">
+                <div class="flex items-center gap-2 w-full bg-black/40 p-2 rounded-full">
+                    <span id="current-time" class="text-xs text-white min-w-[35px] text-center">0:00</span>
+                    <input type="range" id="seek-bar" min="0" value="0" step="0.1" class="flex-grow">
+                    <span id="duration-time" class="text-xs text-white min-w-[35px] text-center">0:00</span>
+                </div>
+            </div>
+            
+            <div class="w-full flex justify-end px-8 mb-4">
+                <label id="file-label" class="btn-label" for="file-input">
+                    <span>انتخاب ویدیو یا عکس</span>
+                </label>
+                <input type="file" id="file-input" accept="video/*,image/*">
+            </div>
+
+            <div id="controls-panel" class="flex flex-col gap-3 items-center hidden w-full">
+                <div class="controls-row">
+                    <button id="play-btn" class="btn-icon" style="width: 50px; height: 50px; background: #2563eb; display:none;">
+                         <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M6.271 5.055a.5.5 0 0 1 .52.038l3.5 2.5a.5.5 0 0 1 0 .814l-3.5 2.5A.5.5 0 0 1 6 10.5v-5a.5.5 0 0 1 .271-.445z"/></svg>
+                         <svg id="pause-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M5 6.25a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5zm3.5 0a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5z"/></svg>
+                    </button>
+                    <button id="remove-bg-btn" class="btn-icon" title="حذف بکگراند (اشخاص)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5Z"/></svg></button>
+                </div>
+                <div id="size-controls" class="controls-row mt-2">
+                    <button id="reset-btn" class="btn-icon" title="بازنشانی کامل"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg></button>
+                    <button id="cube-shape-btn" class="btn-icon" title="تبدیل به مکعب سه بعدی"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2l-2.218-.887zm3.564 1.426L5.596 5 8 5.961 14.154 3.5l-2.404-.961zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/></svg></button>
+                    <button id="mode-3d-btn" class="btn-icon" title="چرخش ۳ بعدی"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/><path d="M8 1a.5.5 0 0 1 .5.5v14a.5.5 0 0 1-1 0v-14A.5.5 0 0 1 8 1z" opacity="0.5"/><path d="M1 8a.5.5 0 0 1 .5-.5h14a.5.5 0 0 1 0 1h-14A.5.5 0 0 1 1 8z" opacity="0.5"/></svg></button>
+                    <button id="rotate-btn" class="btn-icon" title="چرخش 90 درجه"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg></button>
+                    <button id="aspect-btn" class="btn-icon" title="نسبت تصویر"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M5 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H5zm6 10H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1z"/></svg></button>
+                    <button id="stretch-btn" class="btn-icon" title="تغییر سایز آزاد"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8z"/><path fill-rule="evenodd" d="M13.5 12.5a.5.5 0 0 1 0-1l2 1.5-2 1.5a.5.5 0 0 1 0-1V12.5zM2.5 12.5V13a.5.5 0 0 1 0 1l-2-1.5 2-1.5a.5.5 0 0 1 0 1v.5z"/><path d="M2.5 3.5a.5.5 0 0 1 0 1l-2-1.5 2-1.5a.5.5 0 0 1 0 1v.5zm11 0v-.5a.5.5 0 0 1 0-1l2 1.5-2 1.5a.5.5 0 0 1 0-1v-.5z"/></svg></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">تنظیمات آشکارسازی</h3>
+                <button id="close-settings-btn" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
+            </div>
+            <p style="font-size: 0.9rem; color: #ccc;">نحوه نمایش دوباره دکمه‌ها را انتخاب کنید:</p>
+            <div class="radio-group">
+                <label class="radio-item"><input type="radio" name="reveal-mode" value="button" checked><span>نمایش دکمه موقت با لمس (۲ ثانیه)</span></label>
+                <label class="radio-item"><input type="radio" name="reveal-mode" value="gesture"><span>چهار انگشت همزمان روی صفحه</span></label>
+            </div>
+        </div>
+    </div>
+    
+    <div id="about-modal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <div class="modal-header" style="justify-content: center; position: relative;">
+                <h3 class="modal-title" style="font-size: 1.3rem;">درباره ما</h3>
+                <button id="close-about-btn" style="background:none; border:none; color:white; font-size:1.5rem; position: absolute; left: 0;">&times;</button>
+            </div>
+            <div style="padding: 20px 0;">
+                <p style="font-size: 1rem;">LiteGL Optimized Player</p>
+                <p style="font-size: 0.8rem; color: #aaa;">نسخه سبک و سریع برای فایل‌های محلی</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">راهنما</h3>
+                <button id="close-help-btn" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <ul style="list-style-type: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
+                    <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. انتخاب فایل:</strong> با دکمه آبی پایین فایل ویدیو یا عکس را انتخاب کنید.</li>
+                    <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. جابجایی:</strong><br>• <span>یک انگشت:</span> جابجایی تصویر در صفحه.<br>• <span>دو انگشت:</span> بزرگنمایی (Zoom).</li>
+                    <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>3. چرخش ۳ بعدی:</strong> دکمه "چرخش ۳ بعدی" را فعال کنید تا با کشیدن انگشت، تصویر بچرخد.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // جلوگیری از رفرش ناخواسته
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+
+        function formatTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s < 10 ? '0' : ''}${s}`; }
+        
+        function showToast(msg) { 
+            const ts = document.getElementById('touch-status');
+            ts.innerText = msg; 
+            ts.style.opacity = '1'; 
+            setTimeout(() => { ts.style.opacity = '0'; }, 2500); 
+        }
+        
+        // Global variables
+        let gl, mesh = null, texture = null, shader = null;
+        let currentVideo = null, isBgRemovalActive = false;
+        let selfieSegmentation = null, segmentationCanvas = null, segmentationCtx = null;
+        let processedTexture = null;
+        let isProcessing = false, lastProcessTime = 0;
+        
+        // Transform Variables
+        let transform = {
+            pos: vec3.fromValues(0, 0, -3),
+            rot: vec3.fromValues(90 * 0.0174532925, 0, 0),
+            scale: vec3.fromValues(1, 1, 1)
+        };
+        
+        let isDragging = false, lastMouse = [0,0];
+        let isCubeMode = false, isStretchMode = false, is3DMode = false;
+        let aspectRatioMode = 0;
+        let uiHidden = false, revealMode = 'button', revealTimer = null;
+        
+        const els = {};
+        
+        window.addEventListener('load', function() {
+            initApp();
+        });
+
+        function initApp() {
+            // Cache Elements
+            const ids = ['file-input', 'file-label', 'controls-panel', 'clean-view-btn', 'fullscreen-btn', 
+             'dist-container', 'seek-container', 'play-btn', 'play-icon', 'pause-icon', 
+             'seek-bar', 'current-time', 'duration-time', 'touch-status', 'dist-slider', 
+             'temp-reveal-btn', 'remove-bg-btn', 'custom-ar-btn', 'cube-shape-btn',
+             'reset-btn', 'mode-3d-btn', 'rotate-btn', 'aspect-btn', 'stretch-btn',
+             'exit-btn', 'ui-layer', 'settings-btn', 'help-btn', 'about-btn', 'ar-container'];
+             
+            ids.forEach(id => els[id] = document.getElementById(id));
+
+            // Init LiteGL
+            gl = GL.create({
+                container: els['ar-container'],
+                alpha: true,
+                depth: true,
+                antialias: true
+            });
+            
+            // IMPORTANT: REMOVED gl.captureMouse(true) to allow clicking buttons
+            
+            function resize() {
+                gl.canvas.width = window.innerWidth;
+                gl.canvas.height = window.innerHeight;
+                gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            }
+            window.addEventListener('resize', resize);
+            resize();
+            
+            gl.clearColor(0, 0, 0, 0);
+            createShader();
+            setupUI();
+            setupCanvasEvents(); // Custom gesture handling
+            
+            gl.ondraw = render;
+            gl.animate();
+        }
+
+        function createShader() {
+            shader = new GL.Shader(
+                `precision highp float;
+                attribute vec3 a_vertex;
+                attribute vec2 a_coord;
+                varying vec2 v_coord;
+                uniform mat4 u_mvp;
+                void main() {
+                    v_coord = a_coord;
+                    gl_Position = u_mvp * vec4(a_vertex, 1.0);
+                }`,
+                `precision highp float;
+                varying vec2 v_coord;
+                uniform sampler2D u_texture;
+                uniform vec4 u_color;
+                void main() {
+                    gl_FragColor = u_color * texture2D(u_texture, v_coord);
+                }`
+            );
+        }
+
+        function render() {
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            
+            if (!mesh || !texture || !shader) return;
+
+            var projection = mat4.create();
+            var view = mat4.create();
+            mat4.perspective(projection, 45 * 0.0174532925, gl.canvas.width / gl.canvas.height, 0.1, 100);
+            
+            var model = mat4.create();
+            mat4.translate(model, model, transform.pos);
+            mat4.rotateX(model, model, transform.rot[0]);
+            mat4.rotateY(model, model, transform.rot[1]);
+            mat4.rotateZ(model, model, transform.rot[2]);
+            mat4.scale(model, model, transform.scale);
+
+            var mvp = mat4.create();
+            mat4.multiply(mvp, projection, view);
+            mat4.multiply(mvp, mvp, model);
+
+            var texToBind = (isBgRemovalActive && processedTexture) ? processedTexture : texture;
+            texToBind.bind(0);
+
+            if (currentVideo && !currentVideo.paused) {
+                 texture.uploadImage(currentVideo); 
+                 if(isBgRemovalActive) processVideoFrame();
+            }
+
+            shader.uniforms({
+                u_mvp: mvp,
+                u_texture: 0,
+                u_color: [1, 1, 1, 1]
+            });
+
+            shader.draw(mesh);
+        }
+
+        function setupUI() {
+            // File Input Handling
+            els['file-input'].addEventListener('change', handleFile);
+            
+            // Buttons
+            els['exit-btn'].onclick = () => window.history.back();
+            
+            els['clean-view-btn'].onclick = () => {
+                uiHidden = true;
+                document.body.classList.add('ui-hidden');
+                showToast("منوها پنهان شدند");
+            };
+            
+            els['temp-reveal-btn'].onclick = () => {
+                uiHidden = false;
+                document.body.classList.remove('ui-hidden');
+                els['temp-reveal-btn'].style.display = 'none';
+            };
+            
+            els['reset-btn'].onclick = resetView;
+            
+            els['mode-3d-btn'].onclick = function() {
+                if(!checkMesh()) return;
+                is3DMode = !is3DMode;
+                this.classList.toggle('active-mode', is3DMode);
+                showToast(is3DMode ? "حالت چرخش ۳ بعدی" : "حالت جابجایی");
+            };
+
+            els['rotate-btn'].onclick = () => {
+                if(!checkMesh()) return;
+                transform.rot[2] -= Math.PI / 2;
+                showToast("چرخش ۹۰ درجه");
+            };
+            
+            els['dist-slider'].oninput = (e) => {
+                 transform.pos[2] = -parseFloat(e.target.value);
+            };
+            
+            els['aspect-btn'].onclick = () => {
+                if(!checkMesh()) return;
+                aspectRatioMode = (aspectRatioMode + 1) % 4;
+                if(aspectRatioMode === 0) { transform.scale[0] = 1; transform.scale[2] = 1; showToast("سایز اصلی"); }
+                else if(aspectRatioMode === 1) { transform.scale[0] = 1.5; transform.scale[2] = 1; showToast("عریض"); }
+                else if(aspectRatioMode === 2) { transform.scale[0] = 1; transform.scale[2] = 1.5; showToast("مرتفع"); }
+                else if(aspectRatioMode === 3) { transform.scale[0] = 2; transform.scale[2] = 2; showToast("بزرگ"); }
+            };
+
+            els['stretch-btn'].onclick = function() {
+                isStretchMode = !isStretchMode;
+                this.classList.toggle('active-mode', isStretchMode);
+                showToast(isStretchMode ? "تغییر سایز آزاد: روشن" : "تغییر سایز آزاد: خاموش");
+            };
+            
+            els['cube-shape-btn'].onclick = toggleShape;
+            
+            els['play-btn'].onclick = togglePlay;
+            els['seek-bar'].oninput = () => { if (currentVideo) currentVideo.currentTime = els['seek-bar'].value; };
+            
+            els['remove-bg-btn'].onclick = toggleBgRemoval;
+            
+            els['custom-ar-btn'].onclick = () => {
+                 if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+                 els['clean-view-btn'].click();
+                 els['custom-ar-btn'].style.display = 'none';
+            };
+
+            // Modals
+            els['about-btn'].onclick = () => document.getElementById('about-modal').style.display = 'flex';
+            document.getElementById('close-about-btn').onclick = () => document.getElementById('about-modal').style.display = 'none';
+            els['help-btn'].onclick = () => document.getElementById('help-modal').style.display = 'flex';
+            document.getElementById('close-help-btn').onclick = () => document.getElementById('help-modal').style.display = 'none';
+            els['settings-btn'].onclick = () => document.getElementById('settings-modal').style.display = 'flex';
+            document.getElementById('close-settings-btn').onclick = () => document.getElementById('settings-modal').style.display = 'none';
+            
+            document.querySelectorAll('input[name="reveal-mode"]').forEach(r => {
+                r.addEventListener('change', (e) => revealMode = e.target.value);
+            });
+
+            // FIX: Stop propagation to prevent canvas from stealing events on some devices
+            // این بخش اطمینان می‌دهد که وقتی روی دکمه‌ها می‌زنید، بوم نقاشی (Canvas) آن را دریافت نمی‌کند
+            const uiElements = document.querySelectorAll('#ui-layer button, #ui-layer input, #ui-layer label, #custom-ar-btn, #temp-reveal-btn, .modal');
+            uiElements.forEach(el => {
+                el.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
+                el.addEventListener('touchmove', (e) => e.stopPropagation(), {passive: true});
+                el.addEventListener('touchend', (e) => e.stopPropagation(), {passive: true});
+                el.addEventListener('mousedown', (e) => e.stopPropagation());
+            });
+        }
+
+        // Custom Canvas Events to avoid blocking UI
+        function setupCanvasEvents() {
+            const canvas = gl.canvas;
+            let initialPinch = 0;
+            let initialScale = [1,1,1];
+
+            // Touch
+            canvas.addEventListener('touchstart', (e) => {
+                if(e.touches.length === 1) {
+                    isDragging = true;
+                    lastMouse = [e.touches[0].clientX, e.touches[0].clientY];
+                }
+                if(e.touches.length === 2) {
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    initialPinch = Math.sqrt(dx*dx + dy*dy);
+                    initialScale = [...transform.scale];
+                }
+                if(uiHidden) {
+                    if(e.touches.length === 4) { 
+                         els['temp-reveal-btn'].click();
+                    } else if (revealMode === 'button') {
+                        els['temp-reveal-btn'].style.display = 'block';
+                        if(revealTimer) clearTimeout(revealTimer);
+                        revealTimer = setTimeout(() => els['temp-reveal-btn'].style.display = 'none', 2000);
+                    }
+                }
+            }, {passive: false});
+
+            canvas.addEventListener('touchmove', (e) => {
+                if(e.touches.length === 1 && isDragging) {
+                    const dx = e.touches[0].clientX - lastMouse[0];
+                    const dy = e.touches[0].clientY - lastMouse[1];
+                    lastMouse = [e.touches[0].clientX, e.touches[0].clientY];
+                    handleDrag(dx, dy);
+                }
+                if(e.touches.length === 2 && mesh) {
+                    e.preventDefault();
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    const factor = dist / initialPinch;
+                    
+                    if(isStretchMode) {
+                        transform.scale[0] = initialScale[0] * factor;
+                        transform.scale[2] = initialScale[2] * factor;
+                    } else {
+                        transform.scale = [initialScale[0]*factor, initialScale[1]*factor, initialScale[2]*factor];
+                    }
+                }
+            }, {passive: false});
+
+            canvas.addEventListener('touchend', () => isDragging = false);
+
+            // Mouse
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                lastMouse = [e.clientX, e.clientY];
+            });
+            window.addEventListener('mouseup', () => isDragging = false);
+            canvas.addEventListener('mousemove', (e) => {
+                if(!isDragging || !mesh) return;
+                const dx = e.clientX - lastMouse[0];
+                const dy = e.clientY - lastMouse[1];
+                lastMouse = [e.clientX, e.clientY];
+                handleDrag(dx, dy);
+            });
+        }
+
+        function handleDrag(dx, dy) {
+            if (is3DMode) {
+                transform.rot[1] += dx * 0.01;
+                transform.rot[0] += dy * 0.01;
+            } else {
+                transform.pos[0] += dx * 0.005;
+                transform.pos[1] -= dy * 0.005;
+            }
+        }
+
+        function checkMesh() {
+            if(!mesh) { showToast("ابتدا فایلی انتخاب کنید"); return false; }
+            return true;
+        }
+
+        function resetView() {
+            if(!checkMesh()) return;
+            transform.pos = [0, 0, -3];
+            transform.rot = [90 * 0.0174532925, 0, 0];
+            transform.scale = [1, 1, 1];
+            els['dist-slider'].value = 3.0;
+            is3DMode = false; els['mode-3d-btn'].classList.remove('active-mode');
+            isStretchMode = false; els['stretch-btn'].classList.remove('active-mode');
+            aspectRatioMode = 0;
+            showToast("بازنشانی شد");
+        }
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if(texture) gl.deleteTexture(texture);
+            if(currentVideo) { currentVideo.pause(); currentVideo = null; }
+            mesh = null;
+            
+            const url = URL.createObjectURL(file);
+            const type = file.type.split('/')[0];
+            
+            els['controls-panel'].classList.remove('hidden');
+            els['controls-panel'].style.display = 'flex';
+            els['clean-view-btn'].classList.remove('hidden');
+            els['fullscreen-btn'].classList.remove('hidden');
+            els['dist-container'].classList.remove('hidden');
+            els['file-label'].querySelector('span').innerText = "تغییر فایل";
+            
+            if (type === 'image') {
+                els['play-btn'].style.display = 'none';
+                els['seek-container'].classList.add('hidden');
+                
+                texture = GL.Texture.fromURL(url, { minFilter: gl.LINEAR, magFilter: gl.LINEAR }, function(tex) {
+                    if(tex) createMesh(tex.width, tex.height);
+                });
+            } else if (type === 'video') {
+                const vid = document.createElement('video');
+                vid.src = url;
+                vid.crossOrigin = 'anonymous';
+                vid.loop = true;
+                vid.playsInline = true;
+                vid.muted = false;
+                
+                vid.addEventListener('loadedmetadata', function() {
+                    els['seek-container'].classList.remove('hidden');
+                    els['play-btn'].style.display = 'flex';
+                    els['play-icon'].classList.remove('hidden');
+                    els['pause-icon'].classList.add('hidden');
+                    els['seek-bar'].max = vid.duration;
+                    els['duration-time'].innerText = formatTime(vid.duration);
+                    
+                    texture = GL.Texture.fromVideo(vid, { minFilter: gl.LINEAR, magFilter: gl.LINEAR });
+                    currentVideo = vid;
+                    createMesh(vid.videoWidth, vid.videoHeight);
+                });
+                
+                vid.addEventListener('timeupdate', () => {
+                   els['seek-bar'].value = vid.currentTime;
+                   els['current-time'].innerText = formatTime(vid.currentTime);
+                });
+            }
+        }
+
+        function createMesh(w, h) {
+            const aspect = w / h;
+            mesh = GL.Mesh.plane({width: aspect, height: 1, coords: true});
+            showToast("فایل بارگذاری شد");
+        }
+        
+        function toggleShape() {
+            if(!checkMesh()) return;
+            isCubeMode = !isCubeMode;
+            els['cube-shape-btn'].classList.toggle('active-mode', isCubeMode);
+            
+            if(isCubeMode) {
+                mesh = GL.Mesh.cube({size: 1});
+                showToast("حالت مکعب");
+            } else {
+                let w = 1;
+                if(texture) w = texture.width / texture.height;
+                mesh = GL.Mesh.plane({width: w, height: 1, coords: true});
+                showToast("حالت تخت");
+            }
+        }
+
+        function togglePlay() {
+            if(currentVideo) {
+                if(currentVideo.paused) {
+                    currentVideo.play();
+                    els['play-icon'].classList.add('hidden');
+                    els['pause-icon'].classList.remove('hidden');
+                } else {
+                    currentVideo.pause();
+                    els['play-icon'].classList.remove('hidden');
+                    els['pause-icon'].classList.add('hidden');
+                }
+            }
+        }
+        
+        function initMediaPipe() {
+            if (window.SelfieSegmentation && !selfieSegmentation) {
+                selfieSegmentation = new SelfieSegmentation({locateFile: (file) => `js/mediapipe/${file}`});
+                selfieSegmentation.setOptions({ modelSelection: 0, selfieMode: false });
+                selfieSegmentation.onResults(onSegmentationResults);
+                segmentationCanvas = document.createElement('canvas');
+                segmentationCtx = segmentationCanvas.getContext('2d');
+            }
+        }
+
+        async function toggleBgRemoval() {
+            if (!checkMesh()) return;
+            if (!selfieSegmentation) {
+                showToast("در حال لود هوش مصنوعی...");
+                initMediaPipe();
+                setTimeout(toggleBgRemoval, 1500);
+                return;
+            }
+            
+            isBgRemovalActive = !isBgRemovalActive;
+            els['remove-bg-btn'].classList.toggle('active-mode', isBgRemovalActive);
+            
+            if (isBgRemovalActive) {
+                showToast("حذف پس‌زمینه فعال");
+                let w = currentVideo ? currentVideo.videoWidth : texture.width;
+                let h = currentVideo ? currentVideo.videoHeight : texture.height;
+                const targetRes = 360; 
+                if (w > targetRes) {
+                   const scale = targetRes / w;
+                   w = targetRes;
+                   h = Math.floor(h * scale);
+                }
+                segmentationCanvas.width = w;
+                segmentationCanvas.height = h;
+                if(!processedTexture) {
+                    processedTexture = new GL.Texture(w, h, { format: gl.RGBA, minFilter: gl.LINEAR });
+                }
+                if (!currentVideo && texture.img) {
+                    await selfieSegmentation.send({image: texture.img});
+                }
+            } else {
+                showToast("حذف پس‌زمینه خاموش");
+            }
+        }
+
+        function onSegmentationResults(results) {
+            if (!isBgRemovalActive) { isProcessing = false; return; }
+            segmentationCtx.save();
+            segmentationCtx.clearRect(0, 0, segmentationCanvas.width, segmentationCanvas.height);
+            segmentationCtx.drawImage(results.segmentationMask, 0, 0, segmentationCanvas.width, segmentationCanvas.height);
+            segmentationCtx.globalCompositeOperation = 'source-in';
+            segmentationCtx.drawImage(results.image, 0, 0, segmentationCanvas.width, segmentationCanvas.height);
+            segmentationCtx.restore();
+            
+            if (processedTexture) {
+                processedTexture.uploadImage(segmentationCanvas);
+            }
+            isProcessing = false;
+        }
+
+        async function processVideoFrame() {
+            if (!isProcessing && isBgRemovalActive && currentVideo) {
+                const now = performance.now();
+                if(now - lastProcessTime > 100) { 
+                   isProcessing = true;
+                   lastProcessTime = now;
+                   await selfieSegmentation.send({image: currentVideo});
+                }
+            }
+        }
+    </script>
+</body>
+</html>
