@@ -2,7 +2,7 @@
    Service Worker – Final Fixed
    =============================== */
 
-const CACHE_NAME = 'magicplayer-cache-v99eeee9999999';
+const CACHE_NAME = 'magicplayer-cache-v99eeee9999999999';
 
 /* صفحه fallback برای آفلاین */
 const OFFLINE_PAGE = '/offline.html';
@@ -19,7 +19,7 @@ const ASSETS = [
 
   '/css/Vazirmatn-font-face.css',
 
-  '/js/litegl.min.js',
+  '/js/three.min.js',
   
 
   '/js/mediapipe/selfie_segmentation.js',
