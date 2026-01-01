@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>AR Gallery Pro - Fixed Interactions</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    
+    <link href="css/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
+    <script src="js/litegl.min.js"></script>
+    <script src="js/mediapipe/selfie_segmentation.js" defer></script>
+    
+    <style>
+        /* تنظیمات پایه */
+        body { 
+            font-family: 'Vazirmatn', sans-serif; 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #111; 
+            color: white; 
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* لایه پیش‌نمایش (گالری) */
+        #preview-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 5000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        
+        #preview-media-container {
+            width: 90%; height: 60%; 
+            display: flex; justify-content: center; align-items: center;
+            border: 1px dashed #444; border-radius: 10px; margin-bottom: 20px;
+            overflow: hidden; background: #222;
+        }
+        
+        #preview-img, #preview-video {
+            max-width: 100%; max-height: 100%; display: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        #start-ar-btn {
+            background: #10b981; color: white; border: none;
+            padding: 15px 40px; font-size: 1.2rem; border-radius: 50px;
+            font-weight: bold; cursor: pointer; display: none;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* بوم اصلی AR */
+        #ar-container { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 0; 
+        }
+        canvas { display: block; width: 100%; height: 100%; touch-action: none; } 
+
+        /* لایه رابط کاربری AR */
+        #ui-layer { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 100; 
+            pointer-events: none; /* این خط حیاتی است: تاچ‌ها از فضای خالی رد می‌شوند */
+            display: none; /* در ابتدا مخفی */
+            flex-direction: column; justify-content: space-between; 
+        }
+
+        /* تمام دکمه‌ها و کنترل‌ها باید رویداد موس/تاچ را دریافت کنند */
+        button, input, .btn-label, .modal, .ui-panel {
+            pointer-events: auto !important; 
+            cursor: pointer;
+        }
+
+        /* نوار بالا */
+        .ui-top-bar { 
+            padding: 15px; display: flex; justify-content: space-between; 
+            padding-top: env(safe-area-inset-top, 20px); 
+        }
+        
+        /* دکمه‌های آیکونی */
+        .btn-icon { 
+            background: rgba(40, 40, 40, 0.8); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            color: white; width: 45px; height: 45px; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; 
+            margin: 0 5px; transition: 0.2s;
+        }
+        .btn-icon:active { transform: scale(0.9); background: #555; }
+        .active-mode { background: #3b82f6 !important; border-color: #60a5fa; }
+        
+        /* پنل پایین */
+        .ui-bottom-controls { 
+            padding: 20px; 
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); 
+            padding-bottom: calc(20px + env(safe-area-inset-bottom, 10px));
+            display: flex; flex-direction: column; gap: 15px; align-items: center;
+        }
+
+        /* اسلایدرها */
+        .slider-row {
+            display: flex; align-items: center; width: 100%; max-width: 400px;
+            background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;
+            gap: 10px; margin-bottom: 5px;
+        }
+        input[type=range] { flex-grow: 1; height: 30px; }
+
+        /* ردیف دکمه‌های پایین */
+        .controls-row { 
+            display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; 
+            background: rgba(255,255,255,0.1); padding: 10px; border-radius: 30px;
+        }
+
+        /* انتخاب فایل (دکمه اولیه بزرگ) */
+        .file-select-btn {
+            background: #2563eb; color: white; padding: 12px 30px; 
+            border-radius: 30px; font-weight: bold; font-size: 1rem;
+            display: inline-flex; align-items: center; gap: 10px;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.5);
+        }
+
+        #file-input { display: none; }
+
+        /* مودال‌ها */
+        .modal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); z-index: 2000; 
+            display: none; justify-content: center; align-items: center; 
+            backdrop-filter: blur(5px);
+        }
+        .modal-content { 
+            background: #222; padding: 25px; border-radius: 20px; 
+            width: 85%; max-width: 350px; text-align: center; border: 1px solid #444;
+        }
+        
+        #touch-status {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 10px;
+            pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 1500;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="ar-container"></div>
+    <div id="touch-status">پیام</div>
+
+    <div id="preview-layer">
+        <h2 style="margin-bottom: 10px; text-shadow: 0 2px 4px black;">انتخاب مدیا</h2>
+        <div id="preview-media-container">
+            <span id="preview-placeholder" style="color: #aaa;">هنوز فایلی انتخاب نشده</span>
+            <img id="preview-img" src="" alt="preview">
+            <video id="preview-video" muted playsinline loop style="display:none; width:100%; height:100%; object-fit:contain;"></video>
+        </div>
+        
+        <label for="file-input" class="file-select-btn btn-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/></svg>
+            انتخاب از گالری
+        </label>
+        <input type="file" id="file-input" accept="image/*,video/*">
+
+        <br>
+        <button id="start-ar-btn">ورود به محیط AR</button>
+    </div>
+
+    <div id="ui-layer">
+        <div class="ui-top-bar">
+            <div>
+                <button id="back-to-preview" class="btn-icon" style="background: #ef4444;" title="خروج">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/></svg>
+                </button>
+            </div>
+            <div style="display:flex;">
+                <button id="help-btn" class="btn-icon">?</button>
+            </div>
+        </div>
+
+        <div class="ui-bottom-controls">
+            <div class="slider-row">
+                <span style="font-size: 0.8rem; color:#facc15;">فاصله:</span>
+                <input type="range" id="dist-slider" min="1" max="10" value="3.5" step="0.1">
+            </div>
+
+            <div id="video-controls" class="slider-row hidden">
+                <button id="play-pause-btn" style="background:none; border:none; color:white; font-size:1.2rem;">⏯</button>
+                <input type="range" id="seek-slider" min="0" value="0" step="0.1">
+            </div>
+
+            <div class="controls-row">
+                <button id="reset-btn" class="btn-icon" title="ریست">↺</button>
+                <button id="rotate-btn" class="btn-icon" title="چرخش">⟳</button>
+                <button id="3d-mode-btn" class="btn-icon" title="مود سه بعدی">3D</button>
+                <button id="bg-remove-btn" class="btn-icon" title="حذف بکگراند">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>
+                </button>
+                <button id="shape-btn" class="btn-icon" title="تغییر شکل">⬜</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <h3>راهنما</h3>
+            <p>۱. با یک انگشت تصویر را جابجا کنید.</p>
+            <p>۲. با دو انگشت زوم کنید.</p>
+            <p>۳. برای چرخش، دکمه 3D را روشن کنید.</p>
+            <button id="close-help" style="margin-top:15px; padding:8px 20px; border-radius:10px; background:#444; color:white; border:none;">بستن</button>
+        </div>
+    </div>
+
+    <script>
+        // متغیرهای سراسری
+        let gl, mesh, texture, shader;
+        let selectedFileUrl = null;
+        let selectedFileType = null;
+        let currentVideoElement = null; // برای رندر WebGL
+        
+        // وضعیت‌ها
+        let isARActive = false;
+        let is3DMode = false;
+        let isCube = false;
+        let isBgRemoving = false;
+
+        // ترنسفورم
+        let transform = {
+            posX: 0, posY: 0, posZ: -3.5,
+            rotX: 90 * (Math.PI/180), rotY: 0, rotZ: 0,
+            scale: 1.0
+        };
+
+        // MediaPipe
+        let selfieSegmentation = null;
+        let segmentationCanvas = null, segmentationCtx = null;
+        let processedTexture = null;
+
+        // کش کردن المان‌ها
+        const els = {
+            previewLayer: document.getElementById('preview-layer'),
+            uiLayer: document.getElementById('ui-layer'),
+            previewImg: document.getElementById('preview-img'),
+            previewVideo: document.getElementById('preview-video'),
+            previewPlaceholder: document.getElementById('preview-placeholder'),
+            startBtn: document.getElementById('start-ar-btn'),
+            fileInput: document.getElementById('file-input'),
+            distSlider: document.getElementById('dist-slider'),
+            videoControls: document.getElementById('video-controls'),
+            seekSlider: document.getElementById('seek-slider'),
+            canvasContainer: document.getElementById('ar-container'),
+            toast: document.getElementById('touch-status')
+        };
+
+        function showToast(msg) {
+            els.toast.innerText = msg;
+            els.toast.style.opacity = 1;
+            setTimeout(() => els.toast.style.opacity = 0, 2000);
+        }
+
+        window.addEventListener('load', init);
+
+        function init() {
+            // راه‌اندازی LiteGL
+            gl = GL.create({
+                container: els.canvasContainer,
+                alpha: true, depth: true
+            });
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            createShader();
+            setupEvents();
+            
+            gl.ondraw = render;
+            gl.animate();
+        }
+
+        function resizeCanvas() {
+            gl.canvas.width = window.innerWidth;
+            gl.canvas.height = window.innerHeight;
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        }
+
+        function setupEvents() {
+            // 1. انتخاب فایل
+            els.fileInput.addEventListener('change', handleFileSelect);
+
+            // 2. دکمه شروع AR
+            els.startBtn.addEventListener('click', enterARMode);
+
+            // 3. دکمه برگشت
+            document.getElementById('back-to-preview').addEventListener('click', exitARMode);
+
+            // 4. اسلایدر فاصله
+            els.distSlider.addEventListener('input', (e) => {
+                transform.posZ = -parseFloat(e.target.value);
+            });
+
+            // 5. دکمه‌های کنترل
+            document.getElementById('reset-btn').addEventListener('click', resetTransform);
+            
+            document.getElementById('rotate-btn').addEventListener('click', () => {
+                transform.rotZ -= Math.PI / 2;
+                showToast("چرخش ۹۰ درجه");
+            });
+
+            const mode3dBtn = document.getElementById('3d-mode-btn');
+            mode3dBtn.addEventListener('click', () => {
+                is3DMode = !is3DMode;
+                mode3dBtn.classList.toggle('active-mode', is3DMode);
+                showToast(is3DMode ? "حالت چرخش ۳ بعدی" : "حالت جابجایی تخت");
+            });
+
+            document.getElementById('shape-btn').addEventListener('click', toggleShape);
+            
+            document.getElementById('bg-remove-btn').addEventListener('click', toggleBgRemoval);
+
+            // 6. کنترل ویدیو
+            document.getElementById('play-pause-btn').addEventListener('click', () => {
+                if(currentVideoElement) {
+                    if(currentVideoElement.paused) currentVideoElement.play();
+                    else currentVideoElement.pause();
+                }
+            });
+            
+            els.seekSlider.addEventListener('input', (e) => {
+                if(currentVideoElement) currentVideoElement.currentTime = e.target.value;
+            });
+
+            // 7. مدال‌ها
+            document.getElementById('help-btn').addEventListener('click', () => {
+                document.getElementById('help-modal').style.display = 'flex';
+            });
+            document.getElementById('close-help').addEventListener('click', () => {
+                document.getElementById('help-modal').style.display = 'none';
+            });
+
+            // 8. رویدادهای لمسی روی Canvas (اصلاح شده برای کار کردن دکمه‌ها)
+            setupCanvasInteractions();
+        }
+
+        // هندلینگ فایل و پیش‌نمایش
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            selectedFileUrl = URL.createObjectURL(file);
+            selectedFileType = file.type.startsWith('video') ? 'video' : 'image';
+
+            els.previewPlaceholder.style.display = 'none';
+            els.previewImg.style.display = 'none';
+            els.previewVideo.style.display = 'none';
+
+            if (selectedFileType === 'image') {
+                els.previewImg.src = selectedFileUrl;
+                els.previewImg.style.display = 'block';
+            } else {
+                els.previewVideo.src = selectedFileUrl;
+                els.previewVideo.style.display = 'block';
+                els.previewVideo.play();
+            }
+
+            els.startBtn.style.display = 'block';
+        }
+
+        function enterARMode() {
+            if (!selectedFileUrl) return;
+
+            // توقف ویدیوی پیش‌نمایش برای صرفه‌جویی در منابع
+            els.previewVideo.pause();
+
+            // آماده‌سازی WebGL
+            if (texture) gl.deleteTexture(texture); // پاک کردن تکسچر قبلی
+            
+            if (selectedFileType === 'image') {
+                texture = GL.Texture.fromURL(selectedFileUrl, { minFilter: gl.LINEAR, magFilter: gl.LINEAR }, () => {
+                   updateMeshAspectRatio();
+                });
+                currentVideoElement = null;
+                els.videoControls.classList.add('hidden');
+            } else {
+                // ساخت المان ویدیو جدید برای WebGL
+                const vid = document.createElement('video');
+                vid.src = selectedFileUrl;
+                vid.loop = true;
+                vid.playsInline = true;
+                vid.muted = false;
+                vid.crossOrigin = 'anonymous';
+                vid.play();
+                
+                vid.addEventListener('loadedmetadata', () => {
+                     texture = GL.Texture.fromVideo(vid, { minFilter: gl.LINEAR, magFilter: gl.LINEAR });
+                     updateMeshAspectRatio(vid.videoWidth, vid.videoHeight);
+                     els.seekSlider.max = vid.duration;
+                });
+                
+                vid.addEventListener('timeupdate', () => {
+                    if(!els.seekSlider.dragging) els.seekSlider.value = vid.currentTime;
+                });
+
+                currentVideoElement = vid;
+                els.videoControls.classList.remove('hidden');
+            }
+
+            // تغییر UI
+            els.previewLayer.style.display = 'none';
+            els.uiLayer.style.display = 'flex';
+            isARActive = true;
+            resetTransform();
+        }
+
+        function exitARMode() {
+            isARActive = false;
+            els.uiLayer.style.display = 'none';
+            els.previewLayer.style.display = 'flex';
+            
+            if(currentVideoElement) {
+                currentVideoElement.pause();
+                currentVideoElement = null;
+            }
+            // پخش دوباره پیش‌نمایش اگر ویدیو بود
+            if(selectedFileType === 'video') els.previewVideo.play();
+        }
+
+        function updateMeshAspectRatio(w, h) {
+            if(!w && texture) { w = texture.width; h = texture.height; }
+            const aspect = w && h ? w / h : 1;
+            
+            if(isCube) {
+                 mesh = GL.Mesh.cube({size: 1});
+            } else {
+                 mesh = GL.Mesh.plane({width: aspect, height: 1, coords: true});
+            }
+        }
+
+        function toggleShape() {
+            isCube = !isCube;
+            updateMeshAspectRatio(currentVideoElement?.videoWidth, currentVideoElement?.videoHeight);
+            showToast(isCube ? "حالت مکعب" : "حالت تخت");
+        }
+
+        function resetTransform() {
+            transform = {
+                posX: 0, posY: 0, posZ: -3.5,
+                rotX: 90 * (Math.PI/180), rotY: 0, rotZ: 0,
+                scale: 1.0
+            };
+            els.distSlider.value = 3.5;
+            is3DMode = false;
+            document.getElementById('3d-mode-btn').classList.remove('active-mode');
+        }
+
+        // ------- تعاملات لمسی (Touch Interactions) -------
+        function setupCanvasInteractions() {
+            const canvas = gl.canvas;
+            let isDragging = false;
+            let lastX = 0, lastY = 0;
+            let initialPinchDist = 0;
+            let initialScale = 1;
+
+            canvas.addEventListener('mousedown', e => {
+                isDragging = true; lastX = e.clientX; lastY = e.clientY;
+            });
+            window.addEventListener('mousemove', e => {
+                if(isDragging) handleDrag(e.clientX, e.clientY);
+            });
+            window.addEventListener('mouseup', () => isDragging = false);
+
+            canvas.addEventListener('touchstart', e => {
+                // مهم: فقط اگر روی خود کنواس تاچ شد (نه روی دکمه‌ها)
+                if (e.target !== canvas) return;
+                
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    lastX = e.touches[0].clientX;
+                    lastY = e.touches[0].clientY;
+                } else if (e.touches.length === 2) {
+                    isDragging = false;
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    initialPinchDist = Math.sqrt(dx*dx + dy*dy);
+                    initialScale = transform.scale;
+                }
+            }, {passive: false}); // passive: false اجازه می‌دهد preventDefault کار کند اما اینجا لازم نیست
+
+            canvas.addEventListener('touchmove', e => {
+                if (e.target !== canvas) return;
+                
+                // جلوگیری از اسکرول صفحه فقط وقتی روی کنواس کار می‌کنیم
+                if(e.cancelable) e.preventDefault(); 
+
+                if (e.touches.length === 1 && isDragging) {
+                    handleDrag(e.touches[0].clientX, e.touches[0].clientY);
+                } else if (e.touches.length === 2) {
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    const factor = dist / initialPinchDist;
+                    transform.scale = initialScale * factor;
+                }
+            }, {passive: false});
+
+            canvas.addEventListener('touchend', () => isDragging = false);
+
+            function handleDrag(x, y) {
+                const dx = x - lastX;
+                const dy = y - lastY;
+                lastX = x; lastY = y;
+
+                if (is3DMode) {
+                    transform.rotY += dx * 0.01;
+                    transform.rotX += dy * 0.01;
+                } else {
+                    transform.posX += dx * 0.005;
+                    transform.posY -= dy * 0.005;
+                }
+            }
+        }
+
+        // ------- WebGL Rendering -------
+        function createShader() {
+            shader = new GL.Shader(
+                `precision highp float;
+                attribute vec3 a_vertex;
+                attribute vec2 a_coord;
+                varying vec2 v_coord;
+                uniform mat4 u_mvp;
+                void main() {
+                    v_coord = a_coord;
+                    gl_Position = u_mvp * vec4(a_vertex, 1.0);
+                }`,
+                `precision highp float;
+                varying vec2 v_coord;
+                uniform sampler2D u_texture;
+                void main() {
+                    vec4 color = texture2D(u_texture, v_coord);
+                    if(color.a < 0.1) discard;
+                    gl_FragColor = color;
+                }`
+            );
+        }
+
+        function render() {
+            gl.clearColor(0,0,0,0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            if (!isARActive || !mesh || !texture) return;
+
+            // آپدیت تکسچر ویدیو
+            if (currentVideoElement && !currentVideoElement.paused) {
+                texture.uploadImage(currentVideoElement);
+                if(isBgRemoving) processBgRemoval();
+            } else if (isBgRemoving && texture) {
+                // اگر عکس است و حذف پس‌زمینه فعال است، باید پروسس شود
+                // (در پیاده‌سازی ساده اینجا فقط تکسچر پردازش شده بایند می‌شود)
+            }
+
+            // ماتریس‌ها
+            let projection = mat4.create();
+            let view = mat4.create();
+            let model = mat4.create();
+
+            mat4.perspective(projection, 45 * Math.PI / 180, gl.canvas.width / gl.canvas.height, 0.1, 100);
+            
+            mat4.translate(model, model, [transform.posX, transform.posY, transform.posZ]);
+            mat4.rotateX(model, model, transform.rotX);
+            mat4.rotateY(model, model, transform.rotY);
+            mat4.rotateZ(model, model, transform.rotZ);
+            mat4.scale(model, model, [transform.scale, transform.scale, transform.scale]);
+
+            let mvp = mat4.create();
+            mat4.multiply(mvp, projection, view);
+            mat4.multiply(mvp, mvp, model);
+
+            // انتخاب تکسچر (عادی یا پردازش شده)
+            let texToBind = (isBgRemoving && processedTexture) ? processedTexture : texture;
+            texToBind.bind(0);
+
+            shader.uniforms({
+                u_mvp: mvp,
+                u_texture: 0
+            }).draw(mesh);
+        }
+
+        // ------- هوش مصنوعی حذف پس‌زمینه (MediaPipe) -------
+        async function toggleBgRemoval() {
+            if (!isBgRemoving) {
+                if (!selfieSegmentation) {
+                    showToast("در حال بارگذاری هوش مصنوعی...");
+                    selfieSegmentation = new SelfieSegmentation({locateFile: (file) => `js/mediapipe/${file}`});
+                    selfieSegmentation.setOptions({ modelSelection: 1 });
+                    selfieSegmentation.onResults(onSegmentationResults);
+                    
+                    segmentationCanvas = document.createElement('canvas');
+                    segmentationCtx = segmentationCanvas.getContext('2d');
+                }
+                isBgRemoving = true;
+                document.getElementById('bg-remove-btn').classList.add('active-mode');
+                showToast("حذف پس‌زمینه فعال شد");
+                
+                // اگر عکس است یکبار اجرا کن
+                if (!currentVideoElement && els.previewImg.src) {
+                     await selfieSegmentation.send({image: els.previewImg});
+                }
+            } else {
+                isBgRemoving = false;
+                document.getElementById('bg-remove-btn').classList.remove('active-mode');
+                showToast("حذف پس‌زمینه غیرفعال شد");
+            }
+        }
+
+        async function processBgRemoval() {
+            if(currentVideoElement) {
+                await selfieSegmentation.send({image: currentVideoElement});
+            }
+        }
+
+        function onSegmentationResults(results) {
+            segmentationCanvas.width = results.image.width;
+            segmentationCanvas.height = results.image.height;
+            
+            segmentationCtx.save();
+            segmentationCtx.clearRect(0, 0, segmentationCanvas.width, segmentationCanvas.height);
+            segmentationCtx.drawImage(results.segmentationMask, 0, 0, segmentationCanvas.width, segmentationCanvas.height);
+            segmentationCtx.globalCompositeOperation = 'source-in';
+            segmentationCtx.drawImage(results.image, 0, 0, segmentationCanvas.width, segmentationCanvas.height);
+            segmentationCtx.restore();
+
+            if (!processedTexture) {
+                processedTexture = new GL.Texture(segmentationCanvas.width, segmentationCanvas.height);
+            }
+            processedTexture.uploadImage(segmentationCanvas);
+        }
+
+    </script>
+</body>
+</html>
