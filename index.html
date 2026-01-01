@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>Fake AR Legacy - WORKING</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+html,body{margin:0;overflow:hidden;background:#000}
+#camera{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0}
+#three{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none}
+#ui{position:fixed;bottom:10px;left:0;right:0;z-index:2;text-align:center}
+</style>
+<script src="js/three.min.js"></script>
+</head>
+<body>
+
+<video id="camera" autoplay muted playsinline></video>
+<canvas id="three"></canvas>
+
+<div id="ui">
+  <input type="file" id="file" accept="image/*,video/*">
+</div>
+
+<script>
+/* ==== CAMERA ==== */
+navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false})
+.then(s=>camera.srcObject=s);
+
+/* ==== THREE LEGACY ==== */
+const renderer = new THREE.WebGLRenderer({
+  canvas: document.getElementById('three'),
+  alpha:true,
+  antialias:false
+});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(1);
+
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.01,10);
+cam.position.z=1;
+
+let mesh=null;
+
+function animate(){
+ requestAnimationFrame(animate);
+ renderer.render(scene,cam);
+}
+animate();
+
+/* ==== MEDIA ==== */
+file.onchange=e=>{
+ const f=e.target.files[0];
+ if(!f) return;
+
+ if(f.type.startsWith('image')){
+  const img=new Image();
+  img.onload=()=>{
+   const c=document.createElement('canvas');
+   const s=Math.min(512/img.width,512/img.height,1);
+   c.width=img.width*s; c.height=img.height*s;
+   c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+   const tex=new THREE.CanvasTexture(c);
+
+   if(mesh) scene.remove(mesh);
+   mesh=new THREE.Mesh(
+     new THREE.PlaneGeometry(0.6,0.6*c.height/c.width),
+     new THREE.MeshBasicMaterial({map:tex,transparent:true})
+   );
+   scene.add(mesh);
+  };
+  img.src=URL.createObjectURL(f);
+ }
+
+ if(f.type.startsWith('video')){
+  const v=document.createElement('video');
+  v.src=URL.createObjectURL(f);
+  v.muted=true; v.playsInline=true;
+  v.onloadeddata=()=>{
+   v.play();
+   const tex=new THREE.VideoTexture(v);
+   if(mesh) scene.remove(mesh);
+   mesh=new THREE.Mesh(
+     new THREE.PlaneGeometry(0.6,0.6),
+     new THREE.MeshBasicMaterial({map:tex})
+   );
+   scene.add(mesh);
+  };
+ }
+};
+</script>
+
+</body>
+</html>
