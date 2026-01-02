@@ -247,7 +247,7 @@ if (!('xr' in navigator)) {
             renderer.setPixelRatio(1); 
             renderer.setSize(window.innerWidth, window.innerHeight); 
             renderer.outputColorSpace = THREE.SRGBColorSpace; 
-            renderer.autoClear = false;let           renderer.xr.enabled = true; 
+            renderer.autoClear = false;  renderer.xr.enabled = true; 
             renderer.xr.setReferenceSpaceType('local');
             container.appendChild(renderer.domElement);
             renderer.setAnimationLoop(render);
