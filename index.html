@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>AR Gallery Pro - Ultimate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link href="css/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
+    <script src="js/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    
+    <style>
+        /* استایل‌های پایه */
+        body { margin: 0; overflow: hidden; font-family: 'Vazirmatn', sans-serif; background-color: #111; color: white; }
+        
+        /* مخفی کردن دکمه VR پیش‌فرض */
+        .a-enter-vr-button { display: none !important; }
+
+        /* صفحه شروع (انتخاب فایل) */
+        #start-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #111;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s;
+        }
+
+        .upload-box {
+            border: 2px dashed #444;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            background: #222;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        .btn-select {
+            background: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        /* کنترل‌های AR */
+        #ar-ui {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            display: none; /* در ابتدا مخفی */
+            z-index: 1000;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn-control {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+            font-size: 1.2rem;
+        }
+
+        input[type=range] { width: 100%; accent-color: #2563eb; }
+
+        #exit-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: rgba(220, 38, 38, 0.8);
+            display: none;
+        }
+        
+        /* متن راهنما */
+        #guide-text {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.6);
+            padding: 10px 20px;
+            border-radius: 20px;
+            pointer-events: none;
+            display: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <div class="upload-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="#666" viewBox="0 0 16 16" style="margin-bottom: 20px;">
+                <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
+            </svg>
+            <h3>گالری واقعیت افزوده</h3>
+            <p style="color:#aaa; font-size:0.9rem;">ویدیو یا عکس خود را انتخاب کنید</p>
+            <button class="btn-select" onclick="document.getElementById('file-input').click()">انتخاب فایل</button>
+            <input type="file" id="file-input" accept="image/*,video/*" style="display:none">
+        </div>
+    </div>
+
+    <button id="exit-btn" class="btn-control">✕</button>
+    <div id="guide-text">موبایل را حرکت دهید</div>
+
+    <a-scene 
+        id="main-scene"
+        vr-mode-ui="enabled: false"
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; videoTexture: true;"
+        renderer="antialias: true; alpha: true; precision: mediump;">
+
+        <a-assets>
+            <video id="ar-video" loop="true" crossorigin="anonymous" playsinline webkit-playsinline></video>
+        </a-assets>
+
+        <a-entity camera look-controls></a-entity>
+
+        <a-entity id="content-holder" position="0 0 -3" rotation="0 0 0"></a-entity>
+
+    </a-scene>
+
+    <div id="ar-ui">
+        <div style="display:flex; justify-content:space-between; color:#ccc; font-size:12px; padding:0 10px;">
+            <span>نزدیک/دور</span>
+            <span id="scale-label">1.0x</span>
+        </div>
+        <input type="range" id="dist-slider" min="1" max="10" step="0.1" value="3">
+        
+        <div class="controls-row">
+            <button class="btn-control" id="reset-pos" title="بازنشانی موقعیت">↺</button>
+            <button class="btn-control" id="play-pause" title="پخش/توقف" style="display:none;">▶</button>
+            <button class="btn-control" id="scale-up" title="بزرگنمایی">+</button>
+            <button class="btn-control" id="scale-down" title="کوچکنمایی">-</button>
+        </div>
+    </div>
+
+    <script>
+        // عناصر DOM
+        const startScreen = document.getElementById('start-screen');
+        const fileInput = document.getElementById('file-input');
+        const contentHolder = document.getElementById('content-holder');
+        const arVideo = document.getElementById('ar-video');
+        const arUi = document.getElementById('ar-ui');
+        const exitBtn = document.getElementById('exit-btn');
+        const playPauseBtn = document.getElementById('play-pause');
+        const guideText = document.getElementById('guide-text');
+        
+        let currentType = null;
+        let currentScale = 1;
+
+        // 1. هندل کردن انتخاب فایل
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const url = URL.createObjectURL(file);
+            currentType = file.type.startsWith('video') ? 'video' : 'image';
+
+            // مخفی کردن صفحه شروع و نمایش UI
+            startScreen.style.opacity = '0';
+            setTimeout(() => { startScreen.style.display = 'none'; }, 500);
+            arUi.style.display = 'flex';
+            exitBtn.style.display = 'flex';
+            guideText.style.display = 'block';
+            setTimeout(() => { guideText.style.display = 'none'; }, 3000);
+
+            // پاک کردن محتوای قبلی
+            while (contentHolder.firstChild) {
+                contentHolder.removeChild(contentHolder.firstChild);
+            }
+
+            // ساخت المان AR بر اساس نوع فایل
+            if (currentType === 'image') {
+                createImageEntity(url);
+                playPauseBtn.style.display = 'none';
+            } else {
+                createVideoEntity(url);
+                playPauseBtn.style.display = 'flex';
+            }
+        });
+
+        // تابع ساخت تصویر در AR
+        function createImageEntity(url) {
+            const img = new Image();
+            img.src = url;
+            img.onload = () => {
+                // محاسبه نسبت تصویر (Aspect Ratio)
+                const ratio = img.width / img.height;
+                const width = 2; // عرض ثابت (2 متر)
+                const height = width / ratio;
+
+                const plane = document.createElement('a-plane');
+                plane.setAttribute('src', url);
+                plane.setAttribute('width', width);
+                plane.setAttribute('height', height);
+                plane.setAttribute('position', '0 0 0');
+                plane.setAttribute('side', 'double');
+                plane.setAttribute('shader', 'flat'); // برای روشنایی بهتر
+                
+                contentHolder.appendChild(plane);
+                
+                // ریست اسکیل
+                currentScale = 1;
+                updateScaleLabel();
+            };
+        }
+
+        // تابع ساخت ویدیو در AR
+        function createVideoEntity(url) {
+            arVideo.src = url;
+            
+            // لود متادیتا برای سایز صحیح
+            arVideo.onloadedmetadata = () => {
+                const ratio = arVideo.videoWidth / arVideo.videoHeight;
+                const width = 2;
+                const height = width / ratio;
+
+                const videoPlane = document.createElement('a-video');
+                videoPlane.setAttribute('src', '#ar-video');
+                videoPlane.setAttribute('width', width);
+                videoPlane.setAttribute('height', height);
+                videoPlane.setAttribute('position', '0 0 0');
+                videoPlane.setAttribute('side', 'double');
+                
+                contentHolder.appendChild(videoPlane);
+                
+                arVideo.play();
+                playPauseBtn.innerHTML = '❚❚';
+                
+                currentScale = 1;
+                updateScaleLabel();
+            };
+        }
+
+        // کنترلرهای UI
+        
+        // 1. فاصله (Z Position)
+        document.getElementById('dist-slider').addEventListener('input', (e) => {
+            const val = -parseFloat(e.target.value);
+            contentHolder.setAttribute('position', `0 0 ${val}`);
+        });
+
+        // 2. پخش/توقف ویدیو
+        playPauseBtn.addEventListener('click', () => {
+            if (arVideo.paused) {
+                arVideo.play();
+                playPauseBtn.innerHTML = '❚❚';
+            } else {
+                arVideo.pause();
+                playPauseBtn.innerHTML = '▶';
+            }
+        });
+
+        // 3. اسکیل (بزرگ و کوچک کردن)
+        document.getElementById('scale-up').addEventListener('click', () => {
+            currentScale += 0.2;
+            applyScale();
+        });
+        document.getElementById('scale-down').addEventListener('click', () => {
+            if (currentScale > 0.4) currentScale -= 0.2;
+            applyScale();
+        });
+
+        function applyScale() {
+            contentHolder.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
+            updateScaleLabel();
+        }
+
+        function updateScaleLabel() {
+            document.getElementById('scale-label').innerText = currentScale.toFixed(1) + 'x';
+        }
+
+        // 4. دکمه بازنشانی (محتوا را دوباره جلوی دوربین می‌آورد)
+        document.getElementById('reset-pos').addEventListener('click', () => {
+            // دریافت موقعیت و چرخش دوربین
+            const camera = document.querySelector('[camera]');
+            const cameraRotation = camera.getAttribute('rotation');
+            
+            // تنظیم مجدد کانتینر
+            contentHolder.setAttribute('position', '0 0 -3');
+            contentHolder.setAttribute('rotation', `0 ${cameraRotation.y} 0`); // چرخش به سمت کاربر
+            
+            // ریست اسلایدر فاصله
+            document.getElementById('dist-slider').value = 3;
+            
+            // پیام
+            guideText.innerText = "بازنشانی شد";
+            guideText.style.display = 'block';
+            setTimeout(() => { guideText.style.display = 'none'; }, 1500);
+        });
+
+        // 5. دکمه خروج
+        exitBtn.addEventListener('click', () => {
+            location.reload(); // ساده‌ترین راه برای ریست کامل AR و دوربین
+        });
+
+        // فیکس مشکل رنگ در برخی مرورگرها
+        document.querySelector('a-scene').addEventListener('loaded', function () {
+            const renderer = this.renderer;
+            if (renderer) {
+                renderer.physicallyCorrectLights = true;
+                renderer.outputEncoding = THREE.sRGBEncoding;
+            }
+        });
+
+    </script>
+</body>
+</html>
