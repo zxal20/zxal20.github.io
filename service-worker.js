@@ -19,8 +19,7 @@ const ASSETS = [
 
   '/css/Vazirmatn-font-face.css',
 
-  '/js/three.module.min.js',
-  '/js/three.core.min.js',
+  '/js/three.module.js',
 
   '/js/mediapipe/selfie_segmentation.js',
   '/js/mediapipe/selfie_segmentation.binarypb',
