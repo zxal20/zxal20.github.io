@@ -279,7 +279,7 @@ if (!('xr' in navigator)) {
                             if (gl.makeXRCompatible) await gl.makeXRCompatible();
                             
                             // DIGITAL ZOOM SIMULATION (Zoom in 1.3x)
-                            camera.zoom = 2;
+                            camera.zoom = 8;
                             camera.updateProjectionMatrix();
 
                             if (renderer.xr.setFramebufferScaleFactor) {
