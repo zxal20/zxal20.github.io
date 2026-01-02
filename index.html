@@ -247,8 +247,7 @@ if (!('xr' in navigator)) {
             renderer.setPixelRatio(1); 
             renderer.setSize(window.innerWidth, window.innerHeight); 
             renderer.outputColorSpace = THREE.SRGBColorSpace; 
-            renderer.autoClear = true; 
-            renderer.xr.enabled = true; 
+            renderer.autoClear = false;let           renderer.xr.enabled = true; 
             renderer.xr.setReferenceSpaceType('local');
             container.appendChild(renderer.domElement);
             renderer.setAnimationLoop(render);
@@ -297,50 +296,36 @@ if (!('xr' in navigator)) {
 
         // --- OPTIMIZATION 1: AR Frame Cap ---
         let lastArRenderTime = 0;
-        const AR_FPS_THROTTLE = 1000 / 30; // Max 30 FPS in AR
-
-        let lastTextureUpdateTime = 0;
-        const TEXTURE_UPDATE_INTERVAL = 33; // ~30 FPS for Texture
+        // --- شروع بخش جدید ---
+        let lastArRenderTime = 0;
+        const AR_FPS_THROTTLE = 1000 / 30; 
 
         function render(timestamp, frame) {
-            
             if (renderer.xr.isPresenting) {
                 const now = performance.now();
                 
-                // --- OPTIMIZATION 1: Strict FPS Cap for AR ---
+                // کنترل فریم ریت برای خنک ماندن و رفع پرش تصویر
                 if (now - lastArRenderTime < AR_FPS_THROTTLE) return; 
                 lastArRenderTime = now;
 
-                // --- OPTIMIZATION 9: Static Sleep (0% CPU) ---
-                if (currentVideo && currentVideo.paused && !isDragging && !isBgRemovalActive) {
-                    if (Math.random() > 0.05) return; // Keep watchdog alive
-                }
-
-                // --- OPTIMIZATION 4: Throttle Video Texture Updates ---
-                if (currentMesh && currentMesh.material.map && currentVideo) {
-                    if ('requestVideoFrameCallback' in currentVideo && !currentVideo.paused) {
-                         // Native callback handles this efficiently
-                    } else if (now - lastTextureUpdateTime > TEXTURE_UPDATE_INTERVAL) {
-                        if (!currentVideo.paused && currentVideo.readyState >= 2) {
-                            currentMesh.material.map.needsUpdate = true;
-                        }
-                        lastTextureUpdateTime = now;
-                    }
-                }
+                // شرط هوشمند: رندر فقط در صورت لزوم
+                const isVideoPlaying = currentVideo && !currentVideo.paused;
                 
-                if (currentMesh) {
+                if (isVideoPlaying || isDragging || isProcessing || isCubeMode) {
+                    if (isVideoPlaying && currentMesh && currentMesh.material.map) {
+                        currentMesh.material.map.needsUpdate = true;
+                    }
                     renderer.render(scene, camera);
                 }
             } else {
-                if (timestamp - lastFrameTime >= FRAME_MIN_TIME) {
-                    if (currentMesh && currentMesh.material.map && currentVideo && !currentVideo.paused) {
-                         currentMesh.material.map.needsUpdate = true;
-                    }
-                    renderer.render(scene, camera);
-                    lastFrameTime = timestamp;
+                // حالت عادی خارج از AR
+                if (currentVideo && !currentVideo.paused && currentMesh && currentMesh.material.map) {
+                    currentMesh.material.map.needsUpdate = true;
                 }
+                renderer.render(scene, camera);
             }
         }
+         
         
         function onWindowResize() { 
             camera.aspect = window.innerWidth / window.innerHeight; 
