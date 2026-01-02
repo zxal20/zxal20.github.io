@@ -245,7 +245,7 @@ if (!('xr' in navigator)) {
             });
             
             // Force Pixel Ratio to 0.75 for extra cooling
-            renderer.setPixelRatio(0.75); 
+            renderer.setPixelRatio(0.4); 
             renderer.setSize(window.innerWidth, window.innerHeight); 
             renderer.outputColorSpace = THREE.SRGBColorSpace; 
             renderer.autoClear = false; 
@@ -279,7 +279,7 @@ if (!('xr' in navigator)) {
                             if (gl.makeXRCompatible) await gl.makeXRCompatible();
                             
                             // DIGITAL ZOOM SIMULATION (Zoom in 1.3x)
-                            camera.zoom = 1.3;
+                            camera.zoom = 2;
                             camera.updateProjectionMatrix();
 
                             if (renderer.xr.setFramebufferScaleFactor) {
