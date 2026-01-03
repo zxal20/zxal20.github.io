@@ -291,14 +291,17 @@
                 sceneEl.addEventListener('loaded', onSceneLoaded);
             }
 
-            customArBtn.addEventListener('click', async () => {
-                if (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) {
-                    try {
-                        const session = await navigator.xr.requestSession('immersive-ar', {
-                            requiredFeatures: ['local-floor', 'hit-test'],
-                            optionalFeatures: ['dom-overlay'],
-                            domOverlay: { root: document.getElementById('ui-layer') }
-                        });
+            customArBtn.addEventListener('click', () => {
+    // پنهان کردن دکمه‌های اضافی
+    customArBtn.style.display = 'none';
+    exitBtn.style.display = 'none';
+    fullscreenBtn.style.display = 'none';
+    
+    // فعال کردن حالت AR (این دستور دوربین را به درستی با فضای سه بعدی تراز می‌کند)
+    document.querySelector('a-scene').enterVR(); 
+    
+    showToast("حالت AR فعال شد. گوشی را حرکت دهید.");
+});
 
                         sceneEl.renderer.xr.setSession(session);
                         
