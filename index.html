@@ -86,9 +86,9 @@
         <a-scene embedded 
                  id="scene"
                  vr-mode-ui="enabled: false"
-                 webxr="requiredFeatures: local, hit-test; optionalFeatures: dom-overlay; overlayElement: #ui-layer; referenceSpaceType: local"
-                 renderer="antialias: true; colorManagement: true; sortObjects: true; physicallyCorrectLights: false; alpha: true">
-            
+                 renderer="antialias: true; alpha: true; logarithmicDepthBuffer: true;"
+    webxr="requiredFeatures: local, hit-test, camera-access; optionalFeatures: dom-overlay; overlayElement: #ui-layer"
+    arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;">
             <a-light type="ambient" intensity="1"></a-light>
             <a-light type="directional" intensity="0.8" position="-1 2 1"></a-light>
             
