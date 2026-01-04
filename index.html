@@ -409,36 +409,19 @@
                     const angleChange = Math.abs(angle - initialAngle); 
                     const panChange = Math.sqrt(Math.pow(currentMidX - initialMidpoint.x, 2) + Math.pow(currentMidY - initialMidpoint.y, 2));
 
-                    if (!gestureType) { if (panChange > 15) gestureType = 'pan'; else if (scaleChange > 15) gestureType = 'zoom'; else if (angleChange > 0.1) gestureType = 'rotate'; }
-                    
-                    if (gestureType === 'pan') { 
-                        currentMesh.position.x = initialMeshPosition.x + (currentMidX - initialMidpoint.x) * 0.0025; 
-                        currentMesh.position.y = initialMeshPosition.y - (currentMidY - initialMidpoint.y) * 0.0025; 
-                    }
-                    
-                    if (gestureType === 'zoom') { 
-                        if (isStretchMode) { 
-                            // تغییر سایز هوشمند در هر جهت (Look Smart Resize)
-                            // محاسبه نسبت تغییر برای X و Y جداگانه
-                            if (initialPinchDx > 20) currentMesh.scale.x = initialScale.x * (Math.abs(dx) / initialPinchDx);
-                            if (initialPinchDy > 20) currentMesh.scale.y = initialScale.y * (Math.abs(dy) / initialPinchDy);
-                            
-                            // برای مکعب، عمق (Z) را متناسب با زوم کلی تغییر می‌دهیم تا شکل سه‌بعدی حفظ شود
-                            currentMesh.scale.z = initialScale.z * (distance / initialPinchDistance);
+                    if (absX > absY && absX > absZ) {
+                                currentMesh.scale.x = initialScale.x * scaleRatio;
+                            } else if (absY > absX && absY > absZ) {
+                                currentMesh.scale.y = initialScale.y * scaleRatio;
+                            } else {
+                                // اگر زاویه طوری است که محور Z (عمق) روبروی کاربر است
+                                currentMesh.scale.z = (initialScale.z || 1) * scaleRatio;
+                            }
                         } else { 
-                            // زوم معمولی (یکنواخت)
-                            const scaleRatio = distance / initialPinchDistance; 
                             currentMesh.scale.set(initialScale.x * scaleRatio, initialScale.y * scaleRatio, initialScale.z * scaleRatio); 
                         } 
                     }
-                    
-                    // چرخش (Twist) - اکنون در حالت سه بعدی هم فعال است
-                    if (gestureType === 'rotate') { 
-                        const angleDiff = angle - lastPinchAngle;
-                        // چرخش حول محور Z محلی خود شیء (Look Smart Rotation)
-                        currentMesh.rotateZ(angleDiff);
-                        lastPinchAngle = angle;
-                    }
+                    if (!is3DMode && (gestureType === 'rotate')) { currentMesh.rotation.z = initialRotationZ + (angle - initialAngle); }
                 }
             }, { passive: false });
             el.addEventListener('touchend', () => { isDragging = false; gestureType = null; });
