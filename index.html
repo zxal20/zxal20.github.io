@@ -241,7 +241,7 @@
         let arInitFrames = 0; // Counts frames after AR start
         let needsArReposition = false; // Flag to trigger repositioning
 
-        const PROCESS_INTERVAL = 1000 / 5; // Set to approx 26 FPS
+        const PROCESS_INTERVAL = 1000 / 18; // Set to approx 26 FPS
         const TARGET_RESOLUTION = 608; 
 
         const uiLayer = document.getElementById('ui-layer'), fileInput = document.getElementById('file-input'), fileLabel = document.getElementById('file-label'), controlsPanel = document.getElementById('controls-panel'), cleanViewBtn = document.getElementById('clean-view-btn'), fullscreenBtn = document.getElementById('fullscreen-btn'), distContainer = document.getElementById('dist-container'), seekContainer = document.getElementById('seek-container'), playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), seekBar = document.getElementById('seek-bar'), currentTimeEl = document.getElementById('current-time'), durationTimeEl = document.getElementById('duration-time'), touchStatus = document.getElementById('touch-status'), distSlider = document.getElementById('dist-slider'), tempRevealBtn = document.getElementById('temp-reveal-btn'), settingsBtn = document.getElementById('settings-btn'), settingsModal = document.getElementById('settings-modal'), helpModal = document.getElementById('help-modal'), removeBgBtn = document.getElementById('remove-bg-btn'), customArBtn = document.getElementById('custom-ar-btn'), exitBtn = document.getElementById('exit-btn'), aboutBtn = document.getElementById('about-btn'), aboutModal = document.getElementById('about-modal'), cubeShapeBtn = document.getElementById('cube-shape-btn');
