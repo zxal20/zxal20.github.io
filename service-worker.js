@@ -1,8 +1,8 @@
 /* ===============================
-   Service Worker – Ultimate Offline Fix
+   Service Worker – Bulletproof Offline Fix
    =============================== */
 
-const CACHE_NAME = 'magicplayer-cache-v102';
+const CACHE_NAME = 'magicplayer-cache-v103';
 
 const ASSETS = [
     './',
@@ -18,7 +18,6 @@ const ASSETS = [
     './js/mediapipe/selfie_segmentation_solution_simd_wasm_bin.wasm'
 ];
 
-/* نصب و ذخیره کش */
 self.addEventListener('install', (event) => {
     self.skipWaiting();
     event.waitUntil(
@@ -26,7 +25,6 @@ self.addEventListener('install', (event) => {
     );
 });
 
-/* فعال‌سازی و پاکسازی کش‌های قدیمی */
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) =>
@@ -42,33 +40,27 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-/* Fetch - مدیریت هوشمند برای حالت آفلاین و آنلاین */
+/* استراتژی کاملاً ایمن برای جلوگیری از صفحه خطای آفلاین */
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
 
-    // اگر درخواست ورود به صفحه اصلی یا ریستارت بود
-    if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    // اگر درخواست باز کردن صفحه یا ریلود بود
+    if (event.request.mode === 'navigate') {
         event.respondWith(
-            fetch(event.request)
-                .catch(() => {
-                    // اگر اینترنت قطع بود، بدون معطلی و بدون خطا، index.html را از کش تحویل بده
-                    return caches.match('./index.html') || caches.match('./');
-                })
+            fetch(event.request).catch(() => {
+                return caches.match('./index.html') || caches.match('./');
+            })
         );
         return;
     }
 
-    // برای سایر فایل‌ها: اول کش، اگر نبود شبکه، اگر آن هم نشد هیچ (جلوگیری از ارور)
+    // برای بقیه فایل‌ها: اول کش، بعد شبکه
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-                return cachedResponse;
-            }
-            return fetch(event.request).then((networkResponse) => {
-                return networkResponse;
-            }).catch(() => {
-                // اگر فایل صوتی، تصویری یا اسکریپتی در کش نبود و اینترنت هم نبود
-                return new Response('', { status: 404, statusText: 'Offline' });
+            if (cachedResponse) return cachedResponse;
+            return fetch(event.request).catch(() => {
+                // اگر فایل دیگری نبود، هیچ خطای مخربی نده
+                return new Response('', { status: 404 });
             });
         })
     );
