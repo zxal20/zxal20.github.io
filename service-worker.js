@@ -1,5 +1,5 @@
 /* ===============================
-   Service Worker – Fast Offline Reload
+   Service Worker – Ultimate Offline Fix
    =============================== */
 
 const CACHE_NAME = 'magicplayer-cache-v102';
@@ -18,7 +18,7 @@ const ASSETS = [
     './js/mediapipe/selfie_segmentation_solution_simd_wasm_bin.wasm'
 ];
 
-/* نصب */
+/* نصب و ذخیره کش */
 self.addEventListener('install', (event) => {
     self.skipWaiting();
     event.waitUntil(
@@ -42,22 +42,33 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-/* Fetch - تغییر استراتژی به Cache-First برای جلوگیری از خطای آفلاین */
+/* Fetch - مدیریت هوشمند برای حالت آفلاین و آنلاین */
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
 
+    // اگر درخواست ورود به صفحه اصلی یا ریستارت بود
+    if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+        event.respondWith(
+            fetch(event.request)
+                .catch(() => {
+                    // اگر اینترنت قطع بود، بدون معطلی و بدون خطا، index.html را از کش تحویل بده
+                    return caches.match('./index.html') || caches.match('./');
+                })
+        );
+        return;
+    }
+
+    // برای سایر فایل‌ها: اول کش، اگر نبود شبکه، اگر آن هم نشد هیچ (جلوگیری از ارور)
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             if (cachedResponse) {
-                // اگر فایل در کش موجود بود، آن را برگردان (بدون نیاز به اینترنت و بدون خطای آفلاین)
                 return cachedResponse;
             }
-
-            // اگر در کش نبود، از شبکه بگیر و اگر اینترنت قطع بود index.html را بده
-            return fetch(event.request).catch(() => {
-                if (event.request.mode === 'navigate' || event.request.destination === 'document') {
-                    return caches.match('./index.html') || caches.match('./');
-                }
+            return fetch(event.request).then((networkResponse) => {
+                return networkResponse;
+            }).catch(() => {
+                // اگر فایل صوتی، تصویری یا اسکریپتی در کش نبود و اینترنت هم نبود
+                return new Response('', { status: 404, statusText: 'Offline' });
             });
         })
     );
