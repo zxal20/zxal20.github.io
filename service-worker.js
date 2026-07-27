@@ -2,7 +2,7 @@
    Service Worker – Bulletproof Offline Fix
    =============================== */
 
-const CACHE_NAME = 'magicplayer-cache-v108';
+const CACHE_NAME = 'magicplayer-cache-v109';
 
 const ASSETS = [
     './',
