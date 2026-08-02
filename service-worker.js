@@ -12,6 +12,7 @@ const ASSETS = [
     './icon-512.png',
     './css/Vazirmatn-font-face.css',
     './js/three.module.js',
+    './js/three.core.js',
     './js/mediapipe/selfie_segmentation.js',
     './js/mediapipe/selfie_segmentation.binarypb',
     './js/mediapipe/selfie_segmentation_solution_simd_wasm_bin.js',
