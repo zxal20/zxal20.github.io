@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>AR Gallery - Fixed Jitter & Performance</title>
+    <title>AR Gallery - Thermal & GPU Optimized</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     
@@ -140,7 +140,7 @@
                     <h3 class="modal-title" style="font-size: 1.3rem;">درباره ما</h3>
                     <button id="close-about-btn" style="background:none; border:none; color:white; font-size:1.5rem; position: absolute; left: 0;">&times;</button>
                 </div>
-                <p style="font-size: 1rem;">نسخه پایدار و بدون لرزش AR Gallery</p>
+                <p style="font-size: 1rem;">نسخه پایدار و بهینه‌سازی شده AR Gallery</p>
             </div>
         </div>
 
@@ -188,15 +188,19 @@
             scene = new THREE.Scene(); 
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
             
+            // بهینه‌سازی شدید موتور WebGL برای جلوگیری از داغ شدن پردازنده
             renderer = new THREE.WebGLRenderer({ 
                 antialias: false, 
                 alpha: true, 
                 powerPreference: "high-performance", 
-                precision: "mediump"
+                precision: "mediump",
+                depth: false,
+                stencil: false
             });
             
             renderer.setClearColor(0x000000, 0); 
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); 
+            // کاهش رزولوشن رندرینگ به 0.75 برای نصف کردن بار پردازشی GPU
+            renderer.setPixelRatio(0.75); 
             renderer.setSize(window.innerWidth, window.innerHeight); 
             renderer.outputColorSpace = THREE.SRGBColorSpace; 
             renderer.xr.enabled = true; 
@@ -259,7 +263,6 @@
             }
         }
 
-        // تثبیت دقیق جسم در مختصات فضا (مستقل از دوربین برای جلوگیری از لرزش)
         function fixObjectInWorldSpace() {
             if (!currentMesh) return;
             const dir = new THREE.Vector3(); 
@@ -270,7 +273,6 @@
             const dist = parseFloat(distSlider.value);
             currentMesh.position.copy(camera.position).add(dir.multiplyScalar(dist));
             
-            // چرخش دقیق به سمت دوربین بدون تغییر با تکان‌های لحظه‌ای
             const targetRotationY = Math.atan2(
                 (camera.position.x - currentMesh.position.x),
                 (camera.position.z - currentMesh.position.z)
@@ -381,7 +383,6 @@
             isBgRemovalActive = false;
         }
 
-        // بارگذاری هوش مصنوعی فقط هنگام نیاز کاربر (جلوگیری از اشغال رم و داغی پردازنده)
         async function toggleBgRemoval() {
             if (!currentMesh) return; 
             if (!selfieSegmentation) { 
@@ -479,8 +480,17 @@
         function createMesh(texture, width, height) { 
             const aspectRatio = width / height; const displayHeight = 1.0; const displayWidth = displayHeight * aspectRatio; currentOriginalWidth = displayWidth; currentOriginalHeight = displayHeight; 
             const geometry = new THREE.PlaneGeometry(displayWidth, displayHeight, 1, 1); 
-            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true }); 
+            
+            // استفاده از متریال کاملاً بهینه‌شده بدون محاسبات نور ورودی
+            const material = new THREE.MeshBasicMaterial({ 
+                map: texture, 
+                side: THREE.DoubleSide, 
+                transparent: true,
+                depthWrite: false
+            }); 
+            
             currentMesh = new THREE.Mesh(geometry, material); currentMesh.name = 'contentMesh'; 
+            currentMesh.matrixAutoUpdate = true;
             
             if (renderer.xr.isPresenting) { 
                 needsArReposition = true; 
@@ -488,7 +498,7 @@
                 currentMesh.position.set(0, 0, -parseFloat(distSlider.value)); 
             }
             scene.add(currentMesh); 
-            showToast("فایل با موفقیت بارگذاری شد"); 
+            showToast("فایل بارگذاری شد"); 
         }
         
         function setupTouchGestures() {
