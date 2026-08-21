@@ -2,14 +2,13 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>AR Gallery - Fixed AR Session</title>
+    <title>AR Gallery - Fixed Jitter & Performance</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     
     <link rel="manifest" href="manifest.json">
     <link href="css/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
 
-    <script src="js/mediapipe/selfie_segmentation.js" defer></script>
     <script src="js/webxr-polyfill.js" defer></script> 
     
     <style>
@@ -60,7 +59,7 @@
     
     <div id="ar-container"></div>
     <div id="touch-status">وضعیت</div>
-    <button id="custom-ar-btn">ورود به AR (حالت بهینه)</button>
+    <button id="custom-ar-btn">ورود به AR</button>
 
     <div id="ui-layer">
         <div id="touch-layer"></div>
@@ -111,7 +110,7 @@
                     <button id="remove-bg-btn" class="btn-icon" title="حذف بکگراند (اشخاص)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5Z"/></svg></button>
                 </div>
                 <div id="size-controls" class="controls-row mt-2" style="display: none;">
-                    <button id="reset-btn" class="btn-icon" title="بازنشانی کامل"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg></button>
+                    <button id="reset-btn" class="btn-icon" title="بازنشانی و تثبیت موقعیت"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg></button>
                     <button id="cube-shape-btn" class="btn-icon" title="تبدیل به مکعب سه بعدی"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2l-2.218-.887zm3.564 1.426L5.596 5 8 5.961 14.154 3.5l-2.404-.961zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/></svg></button>
                     <button id="mode-3d-btn" class="btn-icon" title="چرخش ۳ بعدی"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/><path d="M8 1a.5.5 0 0 1 .5.5v14a.5.5 0 0 1-1 0v-14A.5.5 0 0 1 8 1z" opacity="0.5"/><path d="M1 8a.5.5 0 0 1 .5-.5h14a.5.5 0 0 1 0 1h-14A.5.5 0 0 1 1 8z" opacity="0.5"/></svg></button>
                     <button id="rotate-btn" class="btn-icon" title="چرخش 90 درجه"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg></button>
@@ -141,7 +140,7 @@
                     <h3 class="modal-title" style="font-size: 1.3rem;">درباره ما</h3>
                     <button id="close-about-btn" style="background:none; border:none; color:white; font-size:1.5rem; position: absolute; left: 0;">&times;</button>
                 </div>
-                <p style="font-size: 1rem;">نسخه اصلاح‌شده AR Gallery - بهبود یافته برای WebXR</p>
+                <p style="font-size: 1rem;">نسخه پایدار و بدون لرزش AR Gallery</p>
             </div>
         </div>
 
@@ -151,7 +150,7 @@
                     <h3 class="modal-title">راهنما</h3>
                     <button id="close-help-btn" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
                 </div>
-                <p style="font-size: 0.9rem;">ابتدا تصویر یا ویدیوی خود را انتخاب کنید، سپس دکمه آبی رنگ "ورود به AR" را لمس کنید.</p>
+                <p style="font-size: 0.9rem;">ابتدا فایل خود را انتخاب کرده و سپس دکمه "ورود به AR" را بزنید. عکس یا ویدیو در نقطه روبه‌روی شما قرار می‌گیرد.</p>
             </div>
         </div>
     </div>
@@ -176,7 +175,7 @@
         let uiHidden = false, revealMode = 'button', revealTimer = null;
         let selfieSegmentation = null, isBgRemovalActive = false, originalTexture = null, processedTexture = null;
         
-        let arInitFrames = 0; let needsArReposition = false; let currentObjectUrl = null; let isStartingAR = false; let fileHasBeenLoaded = false;
+        let needsArReposition = false; let currentObjectUrl = null; let isStartingAR = false; let fileHasBeenLoaded = false;
         let videoTexture = null;
 
         let fileInput, fileLabel, controlsPanel, cleanViewBtn, fullscreenBtn, distContainer, seekContainer, playBtn, playIcon, pauseIcon, seekBar, currentTimeEl, durationTimeEl, distSlider, tempRevealBtn, settingsBtn, settingsModal, helpModal, removeBgBtn, customArBtn, exitBtn, aboutBtn, aboutModal, cubeShapeBtn, touchLayer;
@@ -192,16 +191,12 @@
             renderer = new THREE.WebGLRenderer({ 
                 antialias: false, 
                 alpha: true, 
-                powerPreference: "low-power", 
-                precision: "lowp", 
-                depth: false, 
-                stencil: false,
-                preserveDrawingBuffer: false 
+                powerPreference: "high-performance", 
+                precision: "mediump"
             });
             
             renderer.setClearColor(0x000000, 0); 
-            renderer.shadowMap.enabled = false; 
-            renderer.setPixelRatio(0.5);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); 
             renderer.setSize(window.innerWidth, window.innerHeight); 
             renderer.outputColorSpace = THREE.SRGBColorSpace; 
             renderer.xr.enabled = true; 
@@ -212,7 +207,6 @@
             
             renderer.setAnimationLoop(onXRFrame);
 
-            // اصلاح دقیق هندلر دکمه AR
             customArBtn.addEventListener('click', startARSession);
 
             window.addEventListener('resize', onWindowResize); setupUIListeners(); setupTouchGestures();
@@ -222,21 +216,18 @@
             if(e) { e.preventDefault(); e.stopPropagation(); }
 
             if (!currentMesh) { showToast("لطفا ابتدا یک عکس یا ویدیو انتخاب کنید"); return; }
-            if (!navigator.xr) { showToast("مرورگر شما از WebXR پشتیبانی نمی‌کند یا آدرس HTTPS نیست"); return; }
+            if (!navigator.xr) { showToast("مرورگر شما از WebXR پشتیبانی نمی‌کند"); return; }
 
             try {
                 const supported = await navigator.xr.isSessionSupported('immersive-ar');
                 if (!supported) {
-                    showToast("حالت AR روی دستگاه شما فعال نیست (سرویس Google Play Services for AR را بررسی کنید)");
+                    showToast("حالت AR روی دستگاه شما فعال نیست");
                     return;
                 }
 
                 if (currentSession === null && !isStartingAR) {
                     isStartingAR = true;
                     
-                    const glContext = renderer.getContext();
-                    await glContext.makeXRCompatible();
-
                     const sessionInit = { 
                         requiredFeatures: ['local'],
                         optionalFeatures: ['dom-overlay'],
@@ -247,16 +238,12 @@
                     await renderer.xr.setSession(session);
                     currentSession = session; 
 
-                    const baseLayer = new XRWebGLLayer(session, glContext, { framebufferScaleFactor: 0.5 });
-                    session.updateRenderState({ baseLayer });
-
                     customArBtn.style.display = 'none'; 
                     fullscreenBtn.style.display = 'none'; 
                     exitBtn.style.display = 'none';
                     
-                    showToast("حالت AR فعال شد"); 
+                    showToast("وارد حالت AR شدید"); 
                     needsArReposition = true; 
-                    arInitFrames = 0; 
 
                     session.addEventListener('end', () => { 
                         currentSession = null;
@@ -266,29 +253,35 @@
                     });
                 }
             } catch (err) {
-                console.error("WebXR Session Error:", err);
-                showToast("خطا در راه اندازی AR: " + (err.message || "دسترسی داده نشد"));
+                console.error("WebXR Error:", err);
+                showToast("خطا در ورود به AR");
                 isStartingAR = false;
             }
         }
 
-        function repositionObjectInFrontOfCamera() {
+        // تثبیت دقیق جسم در مختصات فضا (مستقل از دوربین برای جلوگیری از لرزش)
+        function fixObjectInWorldSpace() {
             if (!currentMesh) return;
-            const direction = new THREE.Vector3(); camera.getWorldDirection(direction); direction.y = 0; direction.normalize();
-            const distance = parseFloat(distSlider.value);
-            const targetPos = new THREE.Vector3(); targetPos.copy(camera.position).add(direction.multiplyScalar(distance));
-            currentMesh.position.copy(targetPos); currentMesh.rotation.z = 0;
+            const dir = new THREE.Vector3(); 
+            camera.getWorldDirection(dir); 
+            dir.y = 0; 
+            dir.normalize();
+            
+            const dist = parseFloat(distSlider.value);
+            currentMesh.position.copy(camera.position).add(dir.multiplyScalar(dist));
+            
+            // چرخش دقیق به سمت دوربین بدون تغییر با تکان‌های لحظه‌ای
+            const targetRotationY = Math.atan2(
+                (camera.position.x - currentMesh.position.x),
+                (camera.position.z - currentMesh.position.z)
+            );
+            currentMesh.rotation.set(0, targetRotationY, 0);
         }
 
         function onXRFrame(time, frame) { 
-            if (renderer.xr.isPresenting) {
-                if (needsArReposition) { 
-                    arInitFrames++; 
-                    if (arInitFrames > 3) { 
-                        repositionObjectInFrontOfCamera(); 
-                        needsArReposition = false; 
-                    } 
-                }
+            if (renderer.xr.isPresenting && needsArReposition) {
+                fixObjectInWorldSpace();
+                needsArReposition = false;
             }
             renderer.render(scene, camera);
         }
@@ -326,7 +319,7 @@
             
             distSlider.addEventListener('input', (e) => { 
                 if (renderer.xr.isPresenting && currentMesh) { 
-                    repositionObjectInFrontOfCamera(); 
+                    fixObjectInWorldSpace();
                 } else if (currentMesh) { 
                     currentMesh.position.z = -parseFloat(e.target.value); 
                 } 
@@ -336,14 +329,14 @@
                 if (currentMesh) { 
                     distSlider.value = 1.0; 
                     if (renderer.xr.isPresenting) { 
-                        repositionObjectInFrontOfCamera(); 
+                        fixObjectInWorldSpace(); 
                     } else { 
                         currentMesh.position.set(0, 0, -1.0); currentMesh.rotation.set(0, 0, 0); camera.position.set(0,0,0); camera.rotation.set(0,0,0); 
                     } 
                     currentMesh.scale.set(1, 1, 1); 
                     isStretchMode = false; is3DMode = false; isAspectFlipped = false; 
                     document.getElementById('stretch-btn').classList.remove('active-mode'); document.getElementById('mode-3d-btn').classList.remove('active-mode'); document.getElementById('horiz-vert-btn').classList.remove('active-mode'); 
-                    showToast("بازنشانی کامل");
+                    showToast("موقعیت ثابت شد");
                 } 
             });
             
@@ -388,14 +381,21 @@
             isBgRemovalActive = false;
         }
 
+        // بارگذاری هوش مصنوعی فقط هنگام نیاز کاربر (جلوگیری از اشغال رم و داغی پردازنده)
         async function toggleBgRemoval() {
             if (!currentMesh) return; 
             if (!selfieSegmentation) { 
-                showToast("در حال آماده‌سازی مدل پردازش..."); 
-                selfieSegmentation = new SelfieSegmentation({locateFile: (file) => `./js/mediapipe/${file}`}); 
-                selfieSegmentation.setOptions({ modelSelection: 0, selfieMode: false }); 
-                selfieSegmentation.onResults(onSegmentationResults); 
-                setTimeout(() => startBgRemoval(), 1000); return; 
+                showToast("در حال دانلود کتابخانه هوش مصنوعی..."); 
+                const script = document.createElement('script');
+                script.src = 'js/mediapipe/selfie_segmentation.js';
+                script.onload = () => {
+                    selfieSegmentation = new SelfieSegmentation({locateFile: (file) => `./js/mediapipe/${file}`}); 
+                    selfieSegmentation.setOptions({ modelSelection: 0, selfieMode: false }); 
+                    selfieSegmentation.onResults(onSegmentationResults); 
+                    startBgRemoval();
+                };
+                document.body.appendChild(script);
+                return; 
             }
             startBgRemoval();
         }
@@ -403,10 +403,10 @@
         async function startBgRemoval() {
             isBgRemovalActive = !isBgRemovalActive; removeBgBtn.classList.toggle('active-mode', isBgRemovalActive);
             if (isBgRemovalActive) {
-                showToast("حذف پس‌زمینه"); originalTexture = currentMesh.material.map;
+                showToast("حذف پس‌زمینه فعال شد"); originalTexture = currentMesh.material.map;
                 if (currentImageTexture) await selfieSegmentation.send({image: currentImageTexture.image});
             } else { 
-                showToast("حذف پس‌زمینه خاموش"); 
+                showToast("حذف پس‌زمینه خاموش شد"); 
                 if (originalTexture) { currentMesh.material.map = originalTexture; currentMesh.material.needsUpdate = true; } 
             }
         }
@@ -414,11 +414,11 @@
         function onSegmentationResults(results) { 
             if (!isBgRemovalActive) return;
             const canvas = document.createElement('canvas');
-            canvas.width = 128; canvas.height = 128;
+            canvas.width = 256; canvas.height = 256;
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(results.segmentationMask, 0, 0, 128, 128);
+            ctx.drawImage(results.segmentationMask, 0, 0, 256, 256);
             ctx.globalCompositeOperation = 'source-in';
-            ctx.drawImage(results.image, 0, 0, 128, 128);
+            ctx.drawImage(results.image, 0, 0, 256, 256);
             
             if (processedTexture) processedTexture.dispose();
             processedTexture = new THREE.CanvasTexture(canvas);
@@ -446,21 +446,9 @@
         function processImage(url) { 
             const img = new Image();
             img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const maxDim = 512;
-                let w = img.width, h = img.height;
-                if (w > maxDim || h > maxDim) {
-                    if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
-                    else { w = Math.round((w * maxDim) / h); h = maxDim; }
-                }
-                canvas.width = w; canvas.height = h;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, h);
-
-                const texture = new THREE.CanvasTexture(canvas);
+                const texture = new THREE.Texture(img);
+                texture.needsUpdate = true;
                 texture.colorSpace = THREE.SRGBColorSpace;
-                texture.minFilter = THREE.LinearFilter;
-                texture.generateMipmaps = false;
                 currentImageTexture = texture; 
                 createMesh(texture, img.width, img.height);
             };
@@ -475,18 +463,14 @@
                 
                 videoTexture = new THREE.VideoTexture(video);
                 videoTexture.colorSpace = THREE.SRGBColorSpace;
-                videoTexture.minFilter = THREE.LinearFilter;
-                videoTexture.generateMipmaps = false;
                 
                 currentVideo = video; 
                 createMesh(videoTexture, video.videoWidth, video.videoHeight); 
             }); 
             
-            let lastUITime = 0;
             video.addEventListener('timeupdate', () => { 
                 if (uiHidden) return; 
-                const now = performance.now();
-                if (now - lastUITime > 1000) { seekBar.value = video.currentTime; currentTimeEl.innerText = formatTime(video.currentTime); lastUITime = now; }
+                seekBar.value = video.currentTime; currentTimeEl.innerText = formatTime(video.currentTime);
             }); 
             
             video.play().catch(() => { playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); }); 
@@ -495,9 +479,14 @@
         function createMesh(texture, width, height) { 
             const aspectRatio = width / height; const displayHeight = 1.0; const displayWidth = displayHeight * aspectRatio; currentOriginalWidth = displayWidth; currentOriginalHeight = displayHeight; 
             const geometry = new THREE.PlaneGeometry(displayWidth, displayHeight, 1, 1); 
-            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true, precision: 'lowp' }); 
+            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true }); 
             currentMesh = new THREE.Mesh(geometry, material); currentMesh.name = 'contentMesh'; 
-            if (renderer.xr.isPresenting) { needsArReposition = true; arInitFrames = 0; } else { currentMesh.position.set(0, 0, -parseFloat(distSlider.value)); }
+            
+            if (renderer.xr.isPresenting) { 
+                needsArReposition = true; 
+            } else { 
+                currentMesh.position.set(0, 0, -parseFloat(distSlider.value)); 
+            }
             scene.add(currentMesh); 
             showToast("فایل با موفقیت بارگذاری شد"); 
         }
@@ -512,7 +501,7 @@
             touchLayer.addEventListener('touchmove', (e) => {
                 e.preventDefault(); if (!currentMesh) return;
                 if (e.touches.length === 1 && isDragging) { const deltaX = e.touches[0].clientX - previousMousePosition.x; const deltaY = e.touches[0].clientY - previousMousePosition.y; if (is3DMode) { currentMesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), deltaX * 0.005); currentMesh.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), deltaY * 0.005); } else { currentMesh.position.x += deltaX * 0.0025; currentMesh.position.y -= deltaY * 0.0025; } previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY }; return; }
-                if (e.touches.length === 2 && currentMesh) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const distance = Math.sqrt(dx * dx + dy * dy); const angle = Math.atan2(dy, dx); const currentMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2; const currentMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2; const scaleChange = Math.abs(distance - initialPinchDistance); const angleChange = Math.abs(angle - initialAngle); const panChange = Math.sqrt(Math.pow(currentMidX - initialMidpoint.x, 2) + Math.pow(currentMidY - initialMidpoint.y, 2)); if (!gestureType) { if (panChange > 15) gestureType = 'pan'; else if (scaleChange > 15) gestureType = 'zoom'; else if (angleChange > 0.1) gestureType = 'rotate'; } if (gestureType === 'pan') { currentMesh.position.x = initialMeshPosition.x + (currentMidX - initialMidpoint.x) * 0.0025; currentMesh.position.y = initialMeshPosition.y - (currentMidY - initialMidpoint.y) * 0.0025; } if (gestureType === 'zoom') { const scaleRatio = distance / initialPinchDistance; if (isStretchMode) { const isScreenHorizontal = Math.abs(dx) > Math.abs(dy); _camRight.set(1, 0, 0).applyQuaternion(camera.quaternion); _camUp.set(0, 1, 0).applyQuaternion(camera.quaternion); _objX.set(1, 0, 0).applyQuaternion(currentMesh.quaternion); _objY.set(0, 1, 0).applyQuaternion(currentMesh.quaternion); _objZ.set(0, 0, 1).applyQuaternion(currentMesh.quaternion); const targetCamAxis = isScreenHorizontal ? _camRight : _camUp; const dotX = Math.abs(_objX.dot(targetCamAxis)); const dotY = Math.abs(_objY.dot(targetCamAxis)); const dotZ = Math.abs(_objZ.dot(targetCamAxis)); if (dotX > dotY && dotX > dotZ) currentMesh.scale.x = initialScale.x * scaleRatio; else if (dotY > dotX && dotY > dotZ) currentMesh.scale.y = initialScale.y * scaleRatio; else currentMesh.scale.z = initialScale.z * scaleRatio; } else { currentMesh.scale.set(initialScale.x * scaleRatio, initialScale.y * scaleRatio, initialScale.z * scaleRatio); } } if (gestureType === 'rotate') { const rotDelta = angle - initialAngle; _axisQuaternion.setFromAxisAngle(targetLocalAxis, rotDelta); currentMesh.quaternion.copy(initialQuaternion).multiply(_axisQuaternion); } }
+                if (e.touches.length === 2 && currentMesh) { const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; const distance = Math.sqrt(dx * dx + dy * dy); const angle = Math.atan2(dy, dx); const currentMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2; const currentMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2; const scaleChange = Math.abs(distance - initialPinchDistance); const panChange = Math.sqrt(Math.pow(currentMidX - initialMidpoint.x, 2) + Math.pow(currentMidY - initialMidpoint.y, 2)); if (!gestureType) { if (panChange > 15) gestureType = 'pan'; else if (scaleChange > 15) gestureType = 'zoom'; else if (Math.abs(angle - initialAngle) > 0.1) gestureType = 'rotate'; } if (gestureType === 'pan') { currentMesh.position.x = initialMeshPosition.x + (currentMidX - initialMidpoint.x) * 0.0025; currentMesh.position.y = initialMeshPosition.y - (currentMidY - initialMidpoint.y) * 0.0025; } if (gestureType === 'zoom') { const scaleRatio = distance / initialPinchDistance; if (isStretchMode) { const isScreenHorizontal = Math.abs(dx) > Math.abs(dy); _camRight.set(1, 0, 0).applyQuaternion(camera.quaternion); _camUp.set(0, 1, 0).applyQuaternion(camera.quaternion); _objX.set(1, 0, 0).applyQuaternion(currentMesh.quaternion); _objY.set(0, 1, 0).applyQuaternion(currentMesh.quaternion); _objZ.set(0, 0, 1).applyQuaternion(currentMesh.quaternion); const targetCamAxis = isScreenHorizontal ? _camRight : _camUp; const dotX = Math.abs(_objX.dot(targetCamAxis)); const dotY = Math.abs(_objY.dot(targetCamAxis)); const dotZ = Math.abs(_objZ.dot(targetCamAxis)); if (dotX > dotY && dotX > dotZ) currentMesh.scale.x = initialScale.x * scaleRatio; else if (dotY > dotX && dotY > dotZ) currentMesh.scale.y = initialScale.y * scaleRatio; else currentMesh.scale.z = initialScale.z * scaleRatio; } else { currentMesh.scale.set(initialScale.x * scaleRatio, initialScale.y * scaleRatio, initialScale.z * scaleRatio); } } if (gestureType === 'rotate') { const rotDelta = angle - initialAngle; _axisQuaternion.setFromAxisAngle(targetLocalAxis, rotDelta); currentMesh.quaternion.copy(initialQuaternion).multiply(_axisQuaternion); } }
             }, { passive: false });
             touchLayer.addEventListener('touchend', () => { isDragging = false; gestureType = null; });
         }
