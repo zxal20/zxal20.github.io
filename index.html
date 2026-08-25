@@ -158,7 +158,7 @@
                 <div style="padding: 0 5px;">
                     <ul style="list-style-type: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
                         <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. شروع کار:</strong> مرورگر کروم و Google Play Services for AR را به آخرین نسخه بروزرسانی کنید.</li>
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. حالت فریز AR:</strong> پس از ورود به AR شیء در موقعیت ثابت قرار گرفته و رندرینگ سنگین متوقف می‌شود تا دستگاه داغ نکند.</li>
+                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. ورود به AR:</strong> پس از ورود به AR، فایل به روان‌ترین حالت نمایش داده شده و چرخش دوربین کاملا تعقیب می‌شود.</li>
                     </ul>
                 </div>
             </div>
@@ -192,9 +192,6 @@
         let selfieSegmentation = null, isBgRemovalActive = false, segmentationCanvas = document.createElement('canvas'), segmentationCtx = segmentationCanvas.getContext('2d', { willReadFrequently: true }), lastProcessTime = 0, isProcessing = false;
         
         let arInitFrames = 0; let needsArReposition = false; let currentObjectUrl = null; let isStartingAR = false; let fileHasBeenLoaded = false; 
-        
-        let textureUploaded = false;
-        let arRenderRendered = false;
 
         const PROCESS_INTERVAL = 66; 
         const TARGET_RESOLUTION = 480; 
@@ -280,11 +277,6 @@
                 gl.bindTexture(gl.TEXTURE_2D, mainTexture);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-                textureUploaded = true;
-                
-                if (currentVideo && !currentVideo.paused) {
-                    currentVideo.pause();
-                }
             } catch(e) { console.log("Tex error", e); }
         }
         
@@ -332,15 +324,12 @@
             if (!currentSession) return;
             let session = frame.session;
             
-            if (arRenderRendered) {
-                return;
-            }
-
             session.requestAnimationFrame(onXRFrame);
             
             let pose = frame.getViewerPose(xrRefSpace);
             if (pose) {
-                if (!textureUploaded) {
+                // به‌روزرسانی مداوم ویدیوهای در حال پخش
+                if (currentVideo && !currentVideo.paused) {
                     uploadTexture();
                 }
 
@@ -367,10 +356,6 @@
                     let projMat = new DOMMatrix(view.projectionMatrix);
                     drawScene(projMat.multiply(viewMat).toFloat32Array());
                 }
-
-                if (!needsArReposition && arInitFrames > 2 && textureUploaded) {
-                    arRenderRendered = true;
-                }
             }
         }
         
@@ -390,7 +375,7 @@
             
             if (!fileHasBeenLoaded) return;
             
-            if (!textureUploaded) {
+            if (currentVideo && !currentVideo.paused) {
                 uploadTexture();
             }
 
@@ -432,7 +417,6 @@
                         currentVideo.play(); 
                         playIcon.classList.add('hidden'); 
                         pauseIcon.classList.remove('hidden'); 
-                        textureUploaded = false; 
                     } else { 
                         currentVideo.pause(); 
                         playIcon.classList.remove('hidden'); 
@@ -444,18 +428,16 @@
             seekBar.addEventListener('input', () => { 
                 if (currentVideo) {
                     currentVideo.currentTime = seekBar.value; 
-                    textureUploaded = false; 
+                    uploadTexture();
                 }
             });
             
             distSlider.addEventListener('input', (e) => { 
-                arRenderRendered = false;
                 if (currentSession && xrRefSpace) { needsArReposition = true; arInitFrames = 0; } 
                 else { model.pos.z = -parseFloat(e.target.value); } 
             });
             
             document.getElementById('reset-btn').addEventListener('click', () => { 
-                arRenderRendered = false;
                 distSlider.value = 1.5;
                 if (currentSession) { needsArReposition = true; arInitFrames = 0; }
                 else { model.pos = {x:0, y:0, z:-1.5}; }
@@ -468,12 +450,11 @@
             cubeShapeBtn.addEventListener('click', () => { 
                 if (!fileHasBeenLoaded) return; 
                 isCubeMode = !isCubeMode; cubeShapeBtn.classList.toggle('active-mode', isCubeMode); 
-                arRenderRendered = false;
                 showToast(isCubeMode ? "حالت مکعب سه بعدی" : "حالت تخت"); 
             });
             
             document.getElementById('mode-3d-btn').addEventListener('click', function() { is3DMode = !is3DMode; this.classList.toggle('active-mode', is3DMode); showToast(is3DMode ? "چرخش ۳ بعدی" : "حالت جابجایی"); });
-            document.getElementById('rotate-btn').addEventListener('click', () => { if (fileHasBeenLoaded) { model.rot.z -= 90; arRenderRendered = false; } });
+            document.getElementById('rotate-btn').addEventListener('click', () => { if (fileHasBeenLoaded) { model.rot.z -= 90; } });
             
             document.getElementById('horiz-vert-btn').addEventListener('click', function() { 
                 if (!fileHasBeenLoaded) return; 
@@ -482,7 +463,6 @@
                 const targetAspect = 2 / 3; 
                 if (isAspectFlipped) { model.scale.x = model.scale.y * (targetAspect / aspect); showToast("نسبت ۲:۳ (عمودی)"); } 
                 else { model.scale.x = model.scale.y; showToast("نسبت اصلی (افقی)"); } 
-                arRenderRendered = false;
             });
             
             document.getElementById('stretch-btn').addEventListener('click', function() { isStretchMode = !isStretchMode; this.classList.toggle('active-mode', isStretchMode); showToast(isStretchMode ? "تغییر سایز آزاد" : "تغییر سایز قفل"); });
@@ -506,7 +486,7 @@
                         xrRefSpace = await session.requestReferenceSpace('local');
                         currentSession = session; hideNonARUI(); 
                         customArBtn.style.display = 'none'; fullscreenBtn.style.display = 'none'; exitBtn.style.display = 'none';
-                        showToast("حالت AR فعال شد"); needsArReposition = true; arInitFrames = 0; textureUploaded = false; arRenderRendered = false;
+                        showToast("حالت AR فعال شد"); needsArReposition = true; arInitFrames = 0;
                         session.addEventListener('end', () => { window.location.replace(window.location.pathname); });
                         session.requestAnimationFrame(onXRFrame);
                     } catch (e) { console.error(e); showToast("خطا در اجرای AR"); isStartingAR = false; }
@@ -516,8 +496,7 @@
 
         function clearCurrentObject() {
             if (currentVideo) { currentVideo.pause(); currentVideo.removeAttribute('src'); currentVideo.load(); currentVideo = null; }
-            currentImage = null; textureUploaded = false; arRenderRendered = false;
-            isProcessing = false; isBgRemovalActive = false; fileHasBeenLoaded = false;
+            currentImage = null; isProcessing = false; isBgRemovalActive = false; fileHasBeenLoaded = false;
             gl.bindTexture(gl.TEXTURE_2D, mainTexture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
         }
@@ -543,7 +522,7 @@
                 let scaleFactor = 1; if (w > TARGET_RESOLUTION) { scaleFactor = TARGET_RESOLUTION / w; w = TARGET_RESOLUTION; h = Math.floor(h * scaleFactor); }
                 segmentationCanvas.width = w; segmentationCanvas.height = h;
                 if (currentVideo) processVideoFrame(); else if (currentImage) await selfieSegmentation.send({image: currentImage});
-            } else { showToast("حذف پس‌زمینه خاموش"); textureUploaded = false; }
+            } else { showToast("حذف پس‌زمینه خاموش"); uploadTexture(); }
         }
 
         function onSegmentationResults(results) { 
@@ -554,7 +533,7 @@
             segmentationCtx.globalCompositeOperation = 'source-in'; 
             segmentationCtx.drawImage(results.image, 0, 0, segmentationCanvas.width, segmentationCanvas.height); 
             segmentationCtx.restore(); 
-            textureUploaded = false;
+            uploadTexture();
             isProcessing = false; 
         }
         
@@ -596,8 +575,8 @@
             model.pos = {x:0, y:0, z: -parseFloat(distSlider.value)};
             model.rot = {x:0, y:0, z:0}; model.scale = {x:1, y:1, z:1};
             fileHasBeenLoaded = true;
-            textureUploaded = false;
-            if(currentSession) { needsArReposition = true; arInitFrames = 0; arRenderRendered = false; }
+            uploadTexture();
+            if(currentSession) { needsArReposition = true; arInitFrames = 0; }
             showToast("فایل بارگذاری شد"); 
         }
 
@@ -634,7 +613,6 @@
             
             touchLayer.addEventListener('touchmove', (e) => {
                 e.preventDefault(); if (!fileHasBeenLoaded) return;
-                arRenderRendered = false;
                 if (e.touches.length === 1 && isDragging) { 
                     const deltaX = e.touches[0].clientX - previousMousePosition.x; const deltaY = e.touches[0].clientY - previousMousePosition.y; 
                     if (is3DMode) { model.rot.y += deltaX * 0.5; model.rot.x += deltaY * 0.5; } 
