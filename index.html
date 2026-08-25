@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>AR Gallery (Optimized 30FPS)</title>
+    <title>AR Gallery (Optimized)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     
@@ -192,7 +192,7 @@
         
         let arInitFrames = 0; let needsArReposition = false; let currentObjectUrl = null; let isStartingAR = false; let fileHasBeenLoaded = false; 
 
-        // سیستم محدودسازی فریم به ۳۰ فریم در ثانیه (کاهش فشار و عدم داغ شدن)
+        // سیستم محدودسازی فریم به ۳۰ فریم در ثانیه (کاهش فشار CPU/GPU)
         const FPS = 30;
         const fpsInterval = 1000 / FPS;
         let lastFrameTime = performance.now();
@@ -228,8 +228,9 @@
             uMatrix = gl.getUniformLocation(shaderProgram, "mvp");
             uSampler = gl.getUniformLocation(shaderProgram, "tex");
             
+            // اصلاح UV پورت جهت رفع مشکل چشمک زدن و برعکس شدن تکسچر
             const planePos = new Float32Array([-0.5,-0.5,0, 0.5,-0.5,0, -0.5,0.5,0, -0.5,0.5,0, 0.5,-0.5,0, 0.5,0.5,0]);
-            const planeUV = new Float32Array([0,1, 1,1, 0,0, 0,0, 1,1, 1,0]);
+            const planeUV = new Float32Array([0,0, 1,0, 0,1, 0,1, 1,0, 1,1]);
             
             const cubePos = new Float32Array([
                 -0.5,-0.5,0.5, 0.5,-0.5,0.5, -0.5,0.5,0.5, -0.5,0.5,0.5, 0.5,-0.5,0.5, 0.5,0.5,0.5,
@@ -240,9 +241,9 @@
                 -0.5,-0.5,-0.5, -0.5,-0.5,0.5, -0.5,0.5,-0.5, -0.5,0.5,-0.5, -0.5,-0.5,0.5, -0.5,0.5,0.5
             ]);
             const cubeUV = new Float32Array([
-                0,1, 1,1, 0,0, 0,0, 1,1, 1,0, 1,1, 1,0, 0,1, 0,1, 1,0, 0,0, 
-                0,0, 0,1, 1,0, 1,0, 0,1, 1,1, 0,1, 1,1, 0,0, 0,0, 1,1, 1,0, 
-                1,1, 1,0, 0,1, 0,1, 1,0, 0,0, 0,1, 1,1, 0,0, 0,0, 1,1, 1,0
+                0,0, 1,0, 0,1, 0,1, 1,0, 1,1, 1,0, 1,1, 0,0, 0,0, 1,1, 0,1, 
+                0,1, 0,0, 1,1, 1,1, 0,0, 1,0, 0,0, 1,0, 0,1, 0,1, 1,0, 1,1, 
+                1,0, 1,1, 0,0, 0,0, 1,1, 0,1, 0,0, 1,0, 0,1, 0,1, 1,0, 1,1
             ]);
             
             vboPlane = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vboPlane); gl.bufferData(gl.ARRAY_BUFFER, planePos, gl.STATIC_DRAW);
@@ -256,6 +257,7 @@
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         }
         
         function getPerspectiveMatrix(fovY, aspect, near, far) {
@@ -276,7 +278,7 @@
 
             try {
                 gl.bindTexture(gl.TEXTURE_2D, mainTexture);
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                // حذف UNPACK_FLIP_Y_WEBGL مداوم برای جلوگیری از داغ شدن و Flickeing
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
             } catch(e) {}
         }
@@ -325,13 +327,14 @@
             if (!currentSession) return;
             currentSession.requestAnimationFrame(onXRFrame);
             
-            // قفل پردازش دقیقاً روی ۳۰ فریم بر ثانیه جهت جلوگیری از داغ کردن دستگاه
+            // قفل فریم به ۳۰ فریم بر ثانیه برای کاهش مصرف CPU/GPU
             const elapsed = time - lastFrameTime;
             if (elapsed < fpsInterval) return;
             lastFrameTime = time - (elapsed % fpsInterval);
 
             let pose = frame.getViewerPose(xrRefSpace);
             if (pose) {
+                // فقط در صورتی که ویدیو در حال پخش باشد تکسچر آپلود می‌شود
                 if (currentVideo && !currentVideo.paused && !isBgRemovalActive) {
                     uploadTexture();
                 }
@@ -486,7 +489,6 @@
 
                         await gl.makeXRCompatible();
                         
-                        // فقط از حالت ساده "local" استفاده شده و اسکن موقعیت مکانی سنگین کاملاً حذف شده است
                         const sessionInit = { 
                             requiredFeatures: ['local'], 
                             optionalFeatures: ['dom-overlay'], 
@@ -495,8 +497,8 @@
                         
                         const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
                         
-                        // رندرینگ رزولوشن برای مصرف کمتر GPU به 0.75 مقیاس‌پذیری داده شده است
-                        const glLayer = new XRWebGLLayer(session, gl, { framebufferScaleFactor: 0.75 });
+                        // رندرینگ فریم با مقیاس 0.5 جهت بهینه‌سازی بسیار بالا در GPU
+                        const glLayer = new XRWebGLLayer(session, gl, { framebufferScaleFactor: 0.5 });
                         session.updateRenderState({ baseLayer: glLayer });
                         
                         xrRefSpace = await session.requestReferenceSpace('local');
@@ -556,11 +558,11 @@
         async function processVideoFrame() { 
             if (!(isBgRemovalActive && currentVideo && !currentVideo.paused && !currentVideo.ended)) return; 
             const now = performance.now(); 
-            if (!isProcessing && (now - lastProcessTime > 120)) { 
+            if (!isProcessing && (now - lastProcessTime > 150)) { 
                 isProcessing = true; lastProcessTime = now; 
                 try { await selfieSegmentation.send({image: currentVideo}); } catch(e) { isProcessing = false; } 
             } 
-            setTimeout(processVideoFrame, 120); 
+            setTimeout(processVideoFrame, 150); 
         }
 
         function revealUI() { uiHidden = false; document.body.classList.remove('ui-hidden'); tempRevealBtn.style.display = 'none'; }
@@ -590,7 +592,7 @@
             model.pos = {x:0, y:0, z: -parseFloat(distSlider.value)};
             model.rot = {x:0, y:0, z:0}; model.scale = {x:1, y:1, z:1};
             fileHasBeenLoaded = true;
-            uploadTexture();
+            uploadTexture(); // تکسچر عکس تنها یک‌بار آپلود می‌شود تا GPU اشغال نشود
             if(currentSession) { needsArReposition = true; arInitFrames = 0; }
             showToast("فایل بارگذاری شد"); 
         }
