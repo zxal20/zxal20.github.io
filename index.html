@@ -158,7 +158,7 @@
                 <div style="padding: 0 5px;">
                     <ul style="list-style-type: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
                         <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. شروع کار:</strong> مرورگر کروم و Google Play Services for AR را به آخرین نسخه بروزرسانی کنید.</li>
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. ورود به AR:</strong> پس از ورود به AR، فایل به روان‌ترین حالت نمایش داده شده و چرخش دوربین کاملا تعقیب می‌شود.</li>
+                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. ورود به AR:</strong> پس از ورود به AR، فایل به‌صورت زنده نمایش داده شده و تعقیب دوربین کاملا روان خواهد بود.</li>
                     </ul>
                 </div>
             </div>
@@ -193,8 +193,8 @@
         
         let arInitFrames = 0; let needsArReposition = false; let currentObjectUrl = null; let isStartingAR = false; let fileHasBeenLoaded = false; 
 
-        const PROCESS_INTERVAL = 66; 
-        const TARGET_RESOLUTION = 480; 
+        const PROCESS_INTERVAL = 70; // کنترل نرخ پردازش هوش مصنوعی (حدود ۱۵ بار در ثانیه برای جلوگیری از افت فریم دوربین)
+        const TARGET_RESOLUTION = 360; 
 
         const uiLayer = document.getElementById('ui-layer'), fileInput = document.getElementById('file-input'), fileLabel = document.getElementById('file-label'), controlsPanel = document.getElementById('controls-panel'), cleanViewBtn = document.getElementById('clean-view-btn'), fullscreenBtn = document.getElementById('fullscreen-btn'), distContainer = document.getElementById('dist-container'), seekContainer = document.getElementById('seek-container'), playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), seekBar = document.getElementById('seek-bar'), currentTimeEl = document.getElementById('current-time'), durationTimeEl = document.getElementById('duration-time'), touchStatus = document.getElementById('touch-status'), distSlider = document.getElementById('dist-slider'), tempRevealBtn = document.getElementById('temp-reveal-btn'), settingsBtn = document.getElementById('settings-btn'), settingsModal = document.getElementById('settings-modal'), helpModal = document.getElementById('help-modal'), removeBgBtn = document.getElementById('remove-bg-btn'), customArBtn = document.getElementById('custom-ar-btn'), exitBtn = document.getElementById('exit-btn'), aboutBtn = document.getElementById('about-btn'), aboutModal = document.getElementById('about-modal'), cubeShapeBtn = document.getElementById('cube-shape-btn'), touchLayer = document.getElementById('touch-layer');
 
@@ -328,8 +328,8 @@
             
             let pose = frame.getViewerPose(xrRefSpace);
             if (pose) {
-                // به‌روزرسانی مداوم ویدیوهای در حال پخش
-                if (currentVideo && !currentVideo.paused) {
+                // آپدیت منبع ویدیو به شکل زنده در هر فریم
+                if (currentVideo && !currentVideo.paused && !isBgRemovalActive) {
                     uploadTexture();
                 }
 
@@ -375,7 +375,7 @@
             
             if (!fileHasBeenLoaded) return;
             
-            if (currentVideo && !currentVideo.paused) {
+            if (currentVideo && !currentVideo.paused && !isBgRemovalActive) {
                 uploadTexture();
             }
 
@@ -417,6 +417,7 @@
                         currentVideo.play(); 
                         playIcon.classList.add('hidden'); 
                         pauseIcon.classList.remove('hidden'); 
+                        if (isBgRemovalActive) processVideoFrame();
                     } else { 
                         currentVideo.pause(); 
                         playIcon.classList.remove('hidden'); 
@@ -544,8 +545,7 @@
                 isProcessing = true; lastProcessTime = now; 
                 try { await selfieSegmentation.send({image: currentVideo}); } catch(e) { isProcessing = false; } 
             } 
-            if('requestVideoFrameCallback' in currentVideo) { currentVideo.requestVideoFrameCallback(processVideoFrame); } 
-            else { setTimeout(processVideoFrame, PROCESS_INTERVAL); } 
+            setTimeout(processVideoFrame, PROCESS_INTERVAL); 
         }
 
         function revealUI() { uiHidden = false; document.body.classList.remove('ui-hidden'); tempRevealBtn.style.display = 'none'; }
