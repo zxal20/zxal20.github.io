@@ -65,7 +65,7 @@
     <div id="bg-layer"></div>
     <div id="ar-container"></div>
     <div id="touch-status">وضعیت</div>
-    <button id="custom-ar-btn">ورود به AR (فوق سبک)</button>
+    <button id="custom-ar-btn">ورود به AR</button>
 
     <div id="ui-layer">
         <div id="touch-layer"></div>
@@ -147,16 +147,30 @@
     <script type="module">
         import * as THREE from './js/three.module.js';
 
-        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(e => console.log(e)); }); }
+        if ('serviceWorker' in navigator) { 
+            window.addEventListener('load', () => { 
+                navigator.serviceWorker.register('./service-worker.js').catch(e => console.log(e)); 
+            }); 
+        }
         
-        function hideNonARUI(){ try{ document.getElementById('bg-layer').style.display = 'none'; }catch(e){} }
-        function showToast(msg) { touchStatus.innerText = msg; touchStatus.style.opacity = '1'; setTimeout(() => { touchStatus.style.opacity = '0'; }, 2500); }
-        function formatTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s < 10 ? '0' : ''}${s}`; }
+        function hideNonARUI(){ 
+            try { document.getElementById('bg-layer').style.display = 'none'; } catch(e){} 
+        }
+        function showToast(msg) { 
+            touchStatus.innerText = msg; 
+            touchStatus.style.opacity = '1'; 
+            setTimeout(() => { touchStatus.style.opacity = '0'; }, 2500); 
+        }
+        function formatTime(seconds) { 
+            const m = Math.floor(seconds / 60); 
+            const s = Math.floor(seconds % 60); 
+            return `${m}:${s < 10 ? '0' : ''}${s}`; 
+        }
 
-        let camera, scene, renderer, currentMesh = null, currentVideo = null, currentImageTexture = null, currentSession = null;
+        let camera, scene, renderer, currentMesh = null, currentVideo = null, currentSession = null;
         let isStretchMode = false, isCubeMode = false, currentOriginalWidth = 1, currentOriginalHeight = 1;
         let isDragging = false, previousMousePosition = { x: 0, y: 0 };
-        let initialPinchDistance = 0, initialScale = new THREE.Vector3(), initialAngle = 0, initialMeshPosition = new THREE.Vector3(), gestureType = null;
+        let initialPinchDistance = 0, initialScale = new THREE.Vector3();
         let uiHidden = false, revealMode = 'button', revealTimer = null, needsArReposition = false, lastRenderTime = 0; 
         
         const fileInput = document.getElementById('file-input'), controlsPanel = document.getElementById('controls-panel'), distSlider = document.getElementById('dist-slider'), playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), seekBar = document.getElementById('seek-bar'), currentTimeEl = document.getElementById('current-time'), durationTimeEl = document.getElementById('duration-time'), touchStatus = document.getElementById('touch-status'), tempRevealBtn = document.getElementById('temp-reveal-btn'), customArBtn = document.getElementById('custom-ar-btn'), cubeShapeBtn = document.getElementById('cube-shape-btn');
@@ -166,58 +180,105 @@
 
         function init() {
             const container = document.getElementById('ar-container');
-            scene = new THREE.Scene(); scene.matrixAutoUpdate = false; 
+            scene = new THREE.Scene(); 
+            
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+            scene.add(camera);
             
-            // نهایت بهینه‌سازی پردازش گرافیکی
-            renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: "low-power", precision: "lowp", depth: false, stencil: false });
+            renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: "low-power", precision: "lowp" });
             renderer.setClearColor(0x000000, 0); 
-            
-            // قفل کردن تراکم پیکسلی برای جلوگیری از فشار به گوشی در حالت عادی
-            renderer.setPixelRatio(0.5); 
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1)); 
             renderer.setSize(window.innerWidth, window.innerHeight); 
+            
+            // فعال‌سازی WebXR
             renderer.xr.enabled = true; 
             renderer.xr.setReferenceSpaceType('local');
-            
-            // کاهش شدید رزولوشن در حالت AR
-            try { renderer.xr.setFramebufferScaleFactor(0.2); } catch (e) { } 
             
             container.appendChild(renderer.domElement);
             renderer.setAnimationLoop(render);
 
+            // تست پشنیبانی از AR روی مرورگر
+            if (navigator.xr) {
+                navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
+                    if (!supported) {
+                        customArBtn.innerText = "دستگاه شما AR را پشتیبانی نمی‌کند";
+                        customArBtn.style.opacity = "0.5";
+                    }
+                });
+            } else {
+                customArBtn.innerText = "WebXR پشتیبانی نمی‌شود (نیازمند HTTPS)";
+            }
+
             customArBtn.addEventListener('click', async () => {
                 if (!currentMesh) { showToast("لطفا ابتدا فایل را انتخاب کنید"); return; }
                 if (currentSession === null) {
-                    const sessionInit = { requiredFeatures: ['local'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.getElementById('ui-layer') } };
+                    if (!navigator.xr) {
+                        showToast("مرورگر شما از WebXR پشتیبانی نمی‌کند یا صفحه تحت HTTPS اجرا نشده است");
+                        return;
+                    }
+                    
+                    const sessionInit = { 
+                        requiredFeatures: ['local'], 
+                        optionalFeatures: ['dom-overlay'], 
+                        domOverlay: { root: document.getElementById('ui-layer') } 
+                    };
+
                     try {
                         const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
                         await renderer.xr.setSession(session); 
-                        currentSession = session; hideNonARUI(); 
-                        customArBtn.style.display = 'none'; document.getElementById('exit-btn').style.display = 'none';
-                        showToast("حالت AR (سبک) فعال شد"); needsArReposition = true; 
-                        session.addEventListener('end', () => { window.location.replace(window.location.pathname); });
-                    } catch (e) { showToast("خطا در اجرای AR"); }
+                        currentSession = session; 
+                        hideNonARUI(); 
+                        customArBtn.style.display = 'none'; 
+                        document.getElementById('exit-btn').style.display = 'none';
+                        showToast("حالت AR فعال شد"); 
+                        needsArReposition = true; 
+                        
+                        session.addEventListener('end', () => { 
+                            currentSession = null;
+                            window.location.reload(); 
+                        });
+                    } catch (e) { 
+                        console.error("خطای ورود به AR:", e);
+                        showToast("خطا در اجرای AR: مطمئن شوید از مرورگر Chrome روی موبایل استفاده می‌کنید"); 
+                    }
                 }
             });
-            setupUIListeners(); setupTouchGestures();
+
+            window.addEventListener('resize', onWindowResize);
+            setupUIListeners(); 
+            setupTouchGestures();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
         function repositionObject() {
             if (!currentMesh) return;
-            const direction = new THREE.Vector3(); camera.getWorldDirection(direction); direction.y = 0; direction.normalize();
-            const targetPos = new THREE.Vector3(); targetPos.copy(camera.position).add(direction.multiplyScalar(parseFloat(distSlider.value)));
-            currentMesh.position.copy(targetPos); currentMesh.updateMatrix(); 
+            const direction = new THREE.Vector3(); 
+            camera.getWorldDirection(direction); 
+            direction.y = 0; 
+            direction.normalize();
+            
+            const dist = parseFloat(distSlider.value);
+            const targetPos = new THREE.Vector3(); 
+            targetPos.copy(camera.position).add(direction.multiplyScalar(dist));
+            
+            currentMesh.position.copy(targetPos); 
+            currentMesh.lookAt(camera.position.x, currentMesh.position.y, camera.position.z);
         }
 
         function render(timestamp, frame) { 
             if (renderer.xr.isPresenting) {
-                if (!frame) return;
-                if (needsArReposition) { repositionObject(); needsArReposition = false; }
+                if (needsArReposition) { 
+                    repositionObject(); 
+                    needsArReposition = false; 
+                }
                 renderer.render(scene, camera);
             } else {
-                if (!currentMesh) return; 
-                // محدود کردن فریم ریت در حالت غیر AR برای جلوگیری از داغ شدن
-                if (timestamp - lastRenderTime < 45) return; 
+                if (timestamp - lastRenderTime < 33) return; // محدود کردن به ۳۰ فریم برای جلوگیری از داغ شدن
                 lastRenderTime = timestamp;
                 renderer.render(scene, camera);
             }
@@ -225,26 +286,78 @@
         
         function setupUIListeners() {
             document.getElementById('exit-btn').addEventListener('click', () => { window.close(); });
-            document.getElementById('about-btn').addEventListener('click', () => document.getElementById('about-modal').style.display = 'flex'); document.getElementById('close-about-btn').addEventListener('click', () => document.getElementById('about-modal').style.display = 'none');
+            document.getElementById('about-btn').addEventListener('click', () => document.getElementById('about-modal').style.display = 'flex'); 
+            document.getElementById('close-about-btn').addEventListener('click', () => document.getElementById('about-modal').style.display = 'none');
             fileInput.addEventListener('change', handleFileSelect);
             document.getElementById('clean-view-btn').addEventListener('click', () => { uiHidden = true; document.body.classList.add('ui-hidden'); showToast("منوها پنهان شدند"); });
             tempRevealBtn.addEventListener('click', revealUI);
-            document.getElementById('settings-btn').addEventListener('click', () => document.getElementById('settings-modal').style.display = 'flex'); document.getElementById('close-settings-btn').addEventListener('click', () => document.getElementById('settings-modal').style.display = 'none');
+            document.getElementById('settings-btn').addEventListener('click', () => document.getElementById('settings-modal').style.display = 'flex'); 
+            document.getElementById('close-settings-btn').addEventListener('click', () => document.getElementById('settings-modal').style.display = 'none');
             document.querySelectorAll('input[name="reveal-mode"]').forEach(r => r.addEventListener('change', (e) => revealMode = e.target.value));
             
-            playBtn.addEventListener('click', () => { if (currentVideo) { if (currentVideo.paused) { currentVideo.play(); playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); } else { currentVideo.pause(); playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); } } });
+            playBtn.addEventListener('click', () => { 
+                if (currentVideo) { 
+                    if (currentVideo.paused) { 
+                        currentVideo.play(); 
+                        playIcon.classList.add('hidden'); 
+                        pauseIcon.classList.remove('hidden'); 
+                    } else { 
+                        currentVideo.pause(); 
+                        playIcon.classList.remove('hidden'); 
+                        pauseIcon.classList.add('hidden'); 
+                    } 
+                } 
+            });
             seekBar.addEventListener('input', () => { if (currentVideo) currentVideo.currentTime = seekBar.value; });
-            distSlider.addEventListener('input', (e) => { if (renderer.xr.isPresenting && currentMesh) repositionObject(); else if (currentMesh) { currentMesh.position.z = -parseFloat(e.target.value); currentMesh.updateMatrix(); } });
+            distSlider.addEventListener('input', (e) => { 
+                if (currentMesh) { 
+                    if (renderer.xr.isPresenting) {
+                        repositionObject();
+                    } else {
+                        currentMesh.position.z = -parseFloat(e.target.value); 
+                    }
+                } 
+            });
             
-            document.getElementById('reset-btn').addEventListener('click', () => { if (currentMesh) { distSlider.value = 1.0; if (renderer.xr.isPresenting) repositionObject(); else { currentMesh.position.set(0, 0, -1.0); } currentMesh.scale.set(1, 1, 1); currentMesh.updateMatrix(); showToast("بازنشانی شد"); } });
+            document.getElementById('reset-btn').addEventListener('click', () => { 
+                if (currentMesh) { 
+                    distSlider.value = 1.0; 
+                    if (renderer.xr.isPresenting) repositionObject(); 
+                    else { currentMesh.position.set(0, 0, -1.0); } 
+                    currentMesh.scale.set(1, 1, 1); 
+                    showToast("بازنشانی شد"); 
+                } 
+            });
             
-            cubeShapeBtn.addEventListener('click', () => { if (!currentMesh) return; isCubeMode = !isCubeMode; cubeShapeBtn.classList.toggle('active-mode', isCubeMode); try { currentMesh.geometry.dispose(); } catch(e){} if (isCubeMode) { const depth = Math.min(currentOriginalWidth, currentOriginalHeight) * 0.5; currentMesh.geometry = new THREE.BoxGeometry(currentOriginalWidth, currentOriginalHeight, depth); if(currentMesh.material){ currentMesh.material.depthTest = true; currentMesh.material.depthWrite = true; } } else { currentMesh.geometry = new THREE.PlaneGeometry(currentOriginalWidth, currentOriginalHeight, 1, 1); if(currentMesh.material){ currentMesh.material.depthTest = false; currentMesh.material.depthWrite = false; } } currentMesh.updateMatrix(); });
+            cubeShapeBtn.addEventListener('click', () => { 
+                if (!currentMesh) return; 
+                isCubeMode = !isCubeMode; 
+                cubeShapeBtn.classList.toggle('active-mode', isCubeMode); 
+                try { currentMesh.geometry.dispose(); } catch(e){} 
+                
+                if (isCubeMode) { 
+                    const depth = Math.min(currentOriginalWidth, currentOriginalHeight) * 0.3; 
+                    currentMesh.geometry = new THREE.BoxGeometry(currentOriginalWidth, currentOriginalHeight, depth); 
+                } else { 
+                    currentMesh.geometry = new THREE.PlaneGeometry(currentOriginalWidth, currentOriginalHeight, 1, 1); 
+                } 
+            });
             document.getElementById('stretch-btn').addEventListener('click', function() { isStretchMode = !isStretchMode; this.classList.toggle('active-mode', isStretchMode); });
         }
 
         function clearObject() {
-            if (currentMesh) { scene.remove(currentMesh); if (currentMesh.geometry) currentMesh.geometry.dispose(); if (currentMesh.material) currentMesh.material.dispose(); currentMesh = null; }
-            if (currentVideo) { currentVideo.pause(); currentVideo.removeAttribute('src'); currentVideo.load(); currentVideo = null; }
+            if (currentMesh) { 
+                scene.remove(currentMesh); 
+                if (currentMesh.geometry) currentMesh.geometry.dispose(); 
+                if (currentMesh.material) currentMesh.material.dispose(); 
+                currentMesh = null; 
+            }
+            if (currentVideo) { 
+                currentVideo.pause(); 
+                currentVideo.removeAttribute('src'); 
+                currentVideo.load(); 
+                currentVideo = null; 
+            }
         }
 
         function revealUI() { uiHidden = false; document.body.classList.remove('ui-hidden'); tempRevealBtn.style.display = 'none'; }
@@ -261,10 +374,10 @@
         function processImage(url) { 
             const img = new Image();
             img.onload = () => {
-                const MAX_DIMENSION = 512; let w = img.width; let h = img.height;
+                const MAX_DIMENSION = 1024; let w = img.width; let h = img.height;
                 if (w > MAX_DIMENSION || h > MAX_DIMENSION) { const ratio = Math.min(MAX_DIMENSION / w, MAX_DIMENSION / h); w = Math.floor(w * ratio); h = Math.floor(h * ratio); }
                 const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; texture.minFilter = THREE.LinearFilter; texture.generateMipmaps = false; texture.anisotropy = 1;
+                const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; texture.minFilter = THREE.LinearFilter;
                 createMesh(texture, w, h);
             }; img.src = url;
         }
@@ -273,10 +386,19 @@
             const video = document.createElement('video'); video.src = url; video.crossOrigin = 'anonymous'; video.loop = true; video.playsInline = true; video.muted = false; 
             video.addEventListener('loadedmetadata', () => { 
                 seekBar.max = video.duration; durationTimeEl.innerText = formatTime(video.duration); 
-                const texture = new THREE.VideoTexture(video); texture.colorSpace = THREE.SRGBColorSpace; texture.minFilter = THREE.LinearFilter; texture.generateMipmaps = false;
+                const texture = new THREE.VideoTexture(video); texture.colorSpace = THREE.SRGBColorSpace; texture.minFilter = THREE.LinearFilter;
                 currentVideo = video; createMesh(texture, video.videoWidth, video.videoHeight); 
             }); 
-            let lastUITime = 0; video.addEventListener('timeupdate', () => { if (uiHidden) return; const now = performance.now(); if (now - lastUITime > 500) { seekBar.value = video.currentTime; currentTimeEl.innerText = formatTime(video.currentTime); lastUITime = now; } }); 
+            let lastUITime = 0; 
+            video.addEventListener('timeupdate', () => { 
+                if (uiHidden) return; 
+                const now = performance.now(); 
+                if (now - lastUITime > 500) { 
+                    seekBar.value = video.currentTime; 
+                    currentTimeEl.innerText = formatTime(video.currentTime); 
+                    lastUITime = now; 
+                } 
+            }); 
             video.play().catch(e => { playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); }); 
         }
 
@@ -284,13 +406,11 @@
             const aspectRatio = width / height; currentOriginalHeight = 1.0; currentOriginalWidth = currentOriginalHeight * aspectRatio; 
             const geometry = new THREE.PlaneGeometry(currentOriginalWidth, currentOriginalHeight, 1, 1); 
             
-            // متریال بسیار سبک و بدون نیاز به پردازش نور محیط
-            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true, depthTest: false, depthWrite: false, precision: 'lowp' }); 
+            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true }); 
             
-            currentMesh = new THREE.Mesh(geometry, material); currentMesh.matrixAutoUpdate = false; 
-            currentMesh.frustumCulled = true; 
+            currentMesh = new THREE.Mesh(geometry, material); 
             if (renderer.xr.isPresenting) needsArReposition = true; else currentMesh.position.set(0, 0, -parseFloat(distSlider.value));
-            currentMesh.updateMatrix(); scene.add(currentMesh); showToast("بارگذاری فوق بهینه شد"); 
+            scene.add(currentMesh); showToast("بارگذاری انجام شد"); 
         }
         
         function setupTouchGestures() {
@@ -302,8 +422,18 @@
             
             touchLayer.addEventListener('touchmove', (e) => {
                 e.preventDefault(); if (!currentMesh) return;
-                if (e.touches.length === 1 && isDragging) { currentMesh.position.x += (e.touches[0].clientX - previousMousePosition.x) * 0.0025; currentMesh.position.y -= (e.touches[0].clientY - previousMousePosition.y) * 0.0025; currentMesh.updateMatrix(); previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }
-                if (e.touches.length === 2 && currentMesh) { const dist = Math.sqrt(Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) + Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)); const ratio = dist / initialPinchDistance; currentMesh.scale.set(initialScale.x * ratio, initialScale.y * ratio, initialScale.z * ratio); currentMesh.updateMatrix(); }
+                if (e.touches.length === 1 && isDragging) { 
+                    const deltaX = (e.touches[0].clientX - previousMousePosition.x) * 0.0025; 
+                    const deltaY = (e.touches[0].clientY - previousMousePosition.y) * 0.0025; 
+                    currentMesh.position.x += deltaX; 
+                    currentMesh.position.y -= deltaY; 
+                    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY }; 
+                }
+                if (e.touches.length === 2 && currentMesh) { 
+                    const dist = Math.sqrt(Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) + Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)); 
+                    const ratio = dist / initialPinchDistance; 
+                    currentMesh.scale.set(initialScale.x * ratio, initialScale.y * ratio, initialScale.z * ratio); 
+                }
             }, { passive: false });
             touchLayer.addEventListener('touchend', () => isDragging = false);
         }
