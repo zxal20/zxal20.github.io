@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>AR Gallery (Ultra Optimized)</title>
+    <title>AR Gallery (Thermal Optimized)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     
@@ -42,15 +42,9 @@
         
         .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; justify-content: center; align-items: center; padding: 20px; pointer-events: auto; box-sizing: border-box; }
         .modal-content { background: #1f2937; color: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; border: 1px solid #374151; text-align: right; overflow-y: auto; max-height: 80vh; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #374151; padding-bottom: 10px; }
-        .modal-title { font-size: 1.1rem; font-weight: bold; color: #60a5fa; margin: 0; }
         
         #temp-reveal-btn { position: absolute; top: max(80px, env(safe-area-inset-top)); right: 20px; z-index: 100; display: none; padding: 12px 25px; background: rgba(37, 99, 235, 0.9); color: white; font-weight: bold; font-size: 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 30px; pointer-events: auto; }
         #touch-status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 10px 20px; border-radius: 20px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 20; font-size: 0.9rem; }
-        
-        .radio-group { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
-        .radio-item { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
-        .radio-item input { width: 20px; height: 20px; accent-color: #3b82f6; }
         
         #custom-ar-btn { position: absolute; bottom: 80px; right: 30px; padding: 12px 30px; border: 1px solid rgba(255,255,255,0.5); border-radius: 25px; background: rgba(0,0,0,0.8); color: white; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: bold; z-index: 50; cursor: pointer; }
         
@@ -62,13 +56,12 @@
     <div id="bg-layer"></div>
     <div id="ar-container"></div>
     <div id="touch-status">وضعیت</div>
-    <button id="custom-ar-btn">ورود به AR (حالت فوق بهینه)</button>
+    <button id="custom-ar-btn">ورود به AR (حداکثر خنک‌کنندگی)</button>
 
     <div id="ui-layer">
         <div id="touch-layer"></div>
         <button id="temp-reveal-btn">آشکارسازی دکمه‌ها</button>
         
-        <!-- UI Elements (Keep same as before) -->
         <div class="ui-top-bar">
             <div class="ui-top-bar-left">
                 <button id="exit-btn" class="btn-icon exit-mode" title="خروج"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/></svg></button>
@@ -139,7 +132,10 @@
         let uiHidden = false;
         let arInitFrames = 0; let needsArReposition = false; let currentObjectUrl = null; let isStartingAR = false; let fileHasBeenLoaded = false; 
         
-        let isTextureAllocated = false; // متغیر کلیدی برای جلوگیری از اشغال مموری GPU
+        // متغیرهای کلیدی برای جلوگیری از آپلودهای تکراری و ذوب شدن پردازنده
+        let isTextureAllocated = false; 
+        let lastVideoTime = -1;
+        let imageUploaded = false;
         
         const FPS = 30;
         const fpsInterval = 1000 / FPS;
@@ -162,7 +158,6 @@
             canvas.style.width = '100%'; canvas.style.height = '100%'; canvas.style.display = 'block';
             container.appendChild(canvas);
             
-            // غیرفعال کردن antialias برای کاهش بار پردازنده گرافیکی
             const glOptions = { alpha: true, antialias: false, powerPreference: "low-power", preserveDrawingBuffer: false };
             gl = canvas.getContext('webgl2', glOptions) || canvas.getContext('webgl', glOptions);
             
@@ -217,9 +212,19 @@
             let source = currentImage || currentVideo;
             if (!source) return;
 
+            // --- بخش کلیدی کنترل داغ شدن ---
+            if (currentVideo) {
+                // اگر زمان ویدیو تغییر نکرده (یعنی فریم جدیدی نداریم)، آپلود نکن!
+                if (currentVideo.currentTime === lastVideoTime) return; 
+                lastVideoTime = currentVideo.currentTime;
+            } else if (currentImage) {
+                // اگر عکس است، فقط یک بار آپلود کن
+                if (imageUploaded) return; 
+                imageUploaded = true;
+            }
+
             try {
                 gl.bindTexture(gl.TEXTURE_2D, mainTexture);
-                // رفع مصرف 100 درصدی: استفاده از SubImage بجای Image2D
                 if (!isTextureAllocated) {
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
                     isTextureAllocated = true;
@@ -260,12 +265,12 @@
 
         function onXRFrame(time, frame) {
             if (!currentSession) return;
-            // در WebXR به هیچ وجه نباید فریم را محدود کنیم، چون باعث چشمک زدن وحشتناک در حرکت می‌شود.
             currentSession.requestAnimationFrame(onXRFrame);
             
             let pose = frame.getViewerPose(xrRefSpace);
             if (pose) {
-                if (currentVideo && !currentVideo.paused) uploadTexture();
+                // آپلود فقط در صورت نیاز انجام می‌شود
+                uploadTexture();
 
                 if (needsArReposition) {
                     arInitFrames++;
@@ -294,7 +299,6 @@
         }
         
         function fallbackRender(time) {
-            // توقف کامل رندر پس‌زمینه در هنگام اجرای AR (جلوگیری از درگیری همزمان)
             if (currentSession) return; 
             requestAnimationFrame(fallbackRender);
             
@@ -309,8 +313,7 @@
             gl.viewport(0, 0, canvas.width, canvas.height);
             gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             
-            if (!fileHasBeenLoaded) return;
-            if (currentVideo && !currentVideo.paused) uploadTexture();
+            uploadTexture();
 
             let projMat = new DOMMatrix(getPerspectiveMatrix(60, canvas.width/canvas.height, 0.1, 100));
             let viewMat = new DOMMatrix();
@@ -364,8 +367,8 @@
                         await gl.makeXRCompatible();
                         const session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['local'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.getElementById('ui-layer') } });
                         
-                        // رندرینگ فریم با مقیاس 0.5 (برای کاهش شدید مصرف باتری و گرافیک)
-                        const glLayer = new XRWebGLLayer(session, gl, { framebufferScaleFactor: 0.5, antialias: false });
+                        // کاهش اسکیل فریم بافر برای خنک نگه داشتن پردازنده به 0.35
+                        const glLayer = new XRWebGLLayer(session, gl, { framebufferScaleFactor: 0.35, antialias: false });
                         session.updateRenderState({ baseLayer: glLayer });
                         
                         xrRefSpace = await session.requestReferenceSpace('local');
@@ -374,7 +377,6 @@
                         needsArReposition = true; arInitFrames = 0;
                         session.addEventListener('end', () => { currentSession = null; window.location.replace(window.location.pathname); });
                         
-                        // استارت لوپ AR
                         session.requestAnimationFrame(onXRFrame);
                     } catch (e) { showToast("خطا در اجرای AR"); isStartingAR = false; }
                 }
@@ -384,6 +386,7 @@
         function clearCurrentObject() {
             if (currentVideo) { currentVideo.pause(); currentVideo.removeAttribute('src'); currentVideo.load(); currentVideo = null; }
             currentImage = null; fileHasBeenLoaded = false; isTextureAllocated = false;
+            lastVideoTime = -1; imageUploaded = false; // ریست کردن مقادیر کنترل حرارت
             gl.bindTexture(gl.TEXTURE_2D, mainTexture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
         }
