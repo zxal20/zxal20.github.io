@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>AR Gallery</title>
+    <title>AR Gallery (Optimized 30FPS)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     
@@ -62,7 +62,7 @@
     <div id="bg-layer"></div>
     <div id="ar-container"></div>
     <div id="touch-status">وضعیت</div>
-    <button id="custom-ar-btn">ورود به AR (حالت بهینه)</button>
+    <button id="custom-ar-btn">ورود به AR (حالت کم‌مصرف ۳۰ فریم)</button>
 
     <div id="ui-layer">
         <div id="touch-layer"></div>
@@ -157,8 +157,7 @@
                 </div>
                 <div style="padding: 0 5px;">
                     <ul style="list-style-type: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. شروع کار:</strong> مرورگر کروم و Google Play Services for AR را به آخرین نسخه بروزرسانی کنید.</li>
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. ورود به AR:</strong> پس از ورود به AR، فایل به‌صورت زنده نمایش داده شده و تعقیب دوربین کاملا روان خواهد بود.</li>
+                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. بهینه‌سازی ۳۰ فریم:</strong> نرخ رندر برای جلوگیری از داغ شدن دستگاه روی ۳۰ فریم قفل شده است.</li>
                     </ul>
                 </div>
             </div>
@@ -193,8 +192,10 @@
         
         let arInitFrames = 0; let needsArReposition = false; let currentObjectUrl = null; let isStartingAR = false; let fileHasBeenLoaded = false; 
 
-        const PROCESS_INTERVAL = 70; // کنترل نرخ پردازش هوش مصنوعی (حدود ۱۵ بار در ثانیه برای جلوگیری از افت فریم دوربین)
-        const TARGET_RESOLUTION = 360; 
+        // سیستم محدودسازی فریم به ۳۰ فریم در ثانیه (کاهش فشار و عدم داغ شدن)
+        const FPS = 30;
+        const fpsInterval = 1000 / FPS;
+        let lastFrameTime = performance.now();
 
         const uiLayer = document.getElementById('ui-layer'), fileInput = document.getElementById('file-input'), fileLabel = document.getElementById('file-label'), controlsPanel = document.getElementById('controls-panel'), cleanViewBtn = document.getElementById('clean-view-btn'), fullscreenBtn = document.getElementById('fullscreen-btn'), distContainer = document.getElementById('dist-container'), seekContainer = document.getElementById('seek-container'), playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), seekBar = document.getElementById('seek-bar'), currentTimeEl = document.getElementById('current-time'), durationTimeEl = document.getElementById('duration-time'), touchStatus = document.getElementById('touch-status'), distSlider = document.getElementById('dist-slider'), tempRevealBtn = document.getElementById('temp-reveal-btn'), settingsBtn = document.getElementById('settings-btn'), settingsModal = document.getElementById('settings-modal'), helpModal = document.getElementById('help-modal'), removeBgBtn = document.getElementById('remove-bg-btn'), customArBtn = document.getElementById('custom-ar-btn'), exitBtn = document.getElementById('exit-btn'), aboutBtn = document.getElementById('about-btn'), aboutModal = document.getElementById('about-modal'), cubeShapeBtn = document.getElementById('cube-shape-btn'), touchLayer = document.getElementById('touch-layer');
 
@@ -213,7 +214,7 @@
             canvas.style.width = '100%'; canvas.style.height = '100%'; canvas.style.display = 'block';
             container.appendChild(canvas);
             
-            const glOptions = { alpha: true, antialias: false, powerPreference: "low-power", preserveDrawingBuffer: true };
+            const glOptions = { alpha: true, antialias: false, powerPreference: "low-power", preserveDrawingBuffer: false };
             gl = canvas.getContext('webgl2', glOptions) || canvas.getContext('webgl', glOptions);
             if (!gl) { showToast("مرورگر شما از WebGL پشتیبانی نمی‌کند"); return; }
             
@@ -277,7 +278,7 @@
                 gl.bindTexture(gl.TEXTURE_2D, mainTexture);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-            } catch(e) { console.log("Tex error", e); }
+            } catch(e) {}
         }
         
         function drawScene(projViewMatrix) {
@@ -322,13 +323,15 @@
 
         function onXRFrame(time, frame) {
             if (!currentSession) return;
-            let session = frame.session;
+            currentSession.requestAnimationFrame(onXRFrame);
             
-            session.requestAnimationFrame(onXRFrame);
-            
+            // قفل پردازش دقیقاً روی ۳۰ فریم بر ثانیه جهت جلوگیری از داغ کردن دستگاه
+            const elapsed = time - lastFrameTime;
+            if (elapsed < fpsInterval) return;
+            lastFrameTime = time - (elapsed % fpsInterval);
+
             let pose = frame.getViewerPose(xrRefSpace);
             if (pose) {
-                // آپدیت منبع ویدیو به شکل زنده در هر فریم
                 if (currentVideo && !currentVideo.paused && !isBgRemovalActive) {
                     uploadTexture();
                 }
@@ -341,7 +344,7 @@
                     }
                 }
                 
-                let glLayer = session.renderState.baseLayer;
+                let glLayer = currentSession.renderState.baseLayer;
                 if (!glLayer) return;
                 
                 gl.bindFramebuffer(gl.FRAMEBUFFER, glLayer.framebuffer);
@@ -363,6 +366,10 @@
             if (currentSession) return; 
             requestAnimationFrame(fallbackRender);
             
+            const elapsed = time - lastFrameTime;
+            if (elapsed < fpsInterval) return;
+            lastFrameTime = time - (elapsed % fpsInterval);
+
             let canvas = gl.canvas;
             if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
                 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -417,7 +424,6 @@
                         currentVideo.play(); 
                         playIcon.classList.add('hidden'); 
                         pauseIcon.classList.remove('hidden'); 
-                        if (isBgRemovalActive) processVideoFrame();
                     } else { 
                         currentVideo.pause(); 
                         playIcon.classList.remove('hidden'); 
@@ -479,15 +485,24 @@
                         if (!supported) { showToast("دستگاه شما از AR پشتیبانی نمی‌کند"); isStartingAR = false; return; }
 
                         await gl.makeXRCompatible();
-                        const sessionInit = { requiredFeatures: ['local'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.getElementById('ui-layer') } };
+                        
+                        // فقط از حالت ساده "local" استفاده شده و اسکن موقعیت مکانی سنگین کاملاً حذف شده است
+                        const sessionInit = { 
+                            requiredFeatures: ['local'], 
+                            optionalFeatures: ['dom-overlay'], 
+                            domOverlay: { root: document.getElementById('ui-layer') } 
+                        };
+                        
                         const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
                         
-                        session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
+                        // رندرینگ رزولوشن برای مصرف کمتر GPU به 0.75 مقیاس‌پذیری داده شده است
+                        const glLayer = new XRWebGLLayer(session, gl, { framebufferScaleFactor: 0.75 });
+                        session.updateRenderState({ baseLayer: glLayer });
                         
                         xrRefSpace = await session.requestReferenceSpace('local');
                         currentSession = session; hideNonARUI(); 
                         customArBtn.style.display = 'none'; fullscreenBtn.style.display = 'none'; exitBtn.style.display = 'none';
-                        showToast("حالت AR فعال شد"); needsArReposition = true; arInitFrames = 0;
+                        showToast("حالت AR کم‌مصرف فعال شد"); needsArReposition = true; arInitFrames = 0;
                         session.addEventListener('end', () => { window.location.replace(window.location.pathname); });
                         session.requestAnimationFrame(onXRFrame);
                     } catch (e) { console.error(e); showToast("خطا در اجرای AR"); isStartingAR = false; }
@@ -507,9 +522,9 @@
             if (!selfieSegmentation) { 
                 showToast("در حال آماده‌سازی پردازشگر..."); 
                 selfieSegmentation = new SelfieSegmentation({locateFile: (file) => `./js/mediapipe/${file}`}); 
-                selfieSegmentation.setOptions({ modelSelection: 1, selfieMode: false }); 
+                selfieSegmentation.setOptions({ modelSelection: 0, selfieMode: false }); 
                 selfieSegmentation.onResults(onSegmentationResults); 
-                setTimeout(() => startBgRemoval(), 1500); return; 
+                setTimeout(() => startBgRemoval(), 1000); return; 
             }
             startBgRemoval();
         }
@@ -520,7 +535,7 @@
                 showToast("حذف پس‌زمینه"); 
                 let w = currentVideo ? currentVideo.videoWidth : currentImage.width; 
                 let h = currentVideo ? currentVideo.videoHeight : currentImage.height;
-                let scaleFactor = 1; if (w > TARGET_RESOLUTION) { scaleFactor = TARGET_RESOLUTION / w; w = TARGET_RESOLUTION; h = Math.floor(h * scaleFactor); }
+                let scaleFactor = 1; if (w > 250) { scaleFactor = 250 / w; w = 250; h = Math.floor(h * scaleFactor); }
                 segmentationCanvas.width = w; segmentationCanvas.height = h;
                 if (currentVideo) processVideoFrame(); else if (currentImage) await selfieSegmentation.send({image: currentImage});
             } else { showToast("حذف پس‌زمینه خاموش"); uploadTexture(); }
@@ -541,11 +556,11 @@
         async function processVideoFrame() { 
             if (!(isBgRemovalActive && currentVideo && !currentVideo.paused && !currentVideo.ended)) return; 
             const now = performance.now(); 
-            if (!isProcessing && (now - lastProcessTime > PROCESS_INTERVAL)) { 
+            if (!isProcessing && (now - lastProcessTime > 120)) { 
                 isProcessing = true; lastProcessTime = now; 
                 try { await selfieSegmentation.send({image: currentVideo}); } catch(e) { isProcessing = false; } 
             } 
-            setTimeout(processVideoFrame, PROCESS_INTERVAL); 
+            setTimeout(processVideoFrame, 120); 
         }
 
         function revealUI() { uiHidden = false; document.body.classList.remove('ui-hidden'); tempRevealBtn.style.display = 'none'; }
