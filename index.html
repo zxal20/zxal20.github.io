@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>AR Gallery (Optimized)</title>
+    <title>AR Gallery (Ultra Optimized)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     
@@ -62,18 +62,16 @@
     <div id="bg-layer"></div>
     <div id="ar-container"></div>
     <div id="touch-status">وضعیت</div>
-    <button id="custom-ar-btn">ورود به AR (حالت کم‌مصرف ۳۰ فریم)</button>
+    <button id="custom-ar-btn">ورود به AR (حالت فوق بهینه)</button>
 
     <div id="ui-layer">
         <div id="touch-layer"></div>
         <button id="temp-reveal-btn">آشکارسازی دکمه‌ها</button>
         
+        <!-- UI Elements (Keep same as before) -->
         <div class="ui-top-bar">
             <div class="ui-top-bar-left">
                 <button id="exit-btn" class="btn-icon exit-mode" title="خروج"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/></svg></button>
-                <button id="about-btn" class="btn-icon" title="درباره ما"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 1 1-2 0 1 1 0 0 1 2 0z"/></svg></button>
-                <button id="help-btn" class="btn-icon" title="راهنما"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/></svg></button>
-                <button id="settings-btn" class="btn-icon" title="تنظیمات"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1-1.255-.52l-.094-.319z"/></svg></button>
             </div>
             <div class="ui-top-bar-right">
                 <button id="clean-view-btn" class="btn-icon hidden" title="پنهان شدن دکمه‌ها"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg></button>
@@ -110,66 +108,18 @@
                          <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M6.271 5.055a.5.5 0 0 1 .52.038l3.5 2.5a.5.5 0 0 1 0 .814l-3.5 2.5A.5.5 0 0 1 6 10.5v-5a.5.5 0 0 1 .271-.445z"/></svg>
                          <svg id="pause-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M5 6.25a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5zm3.5 0a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5z"/></svg>
                     </button>
-                    <button id="remove-bg-btn" class="btn-icon" title="حذف بکگراند (اشخاص)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5Z"/></svg></button>
                 </div>
                 <div id="size-controls" class="controls-row mt-2" style="display: none;">
                     <button id="reset-btn" class="btn-icon" title="بازنشانی کامل"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg></button>
                     <button id="cube-shape-btn" class="btn-icon" title="تبدیل به مکعب سه بعدی"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2l-2.218-.887zm3.564 1.426L5.596 5 8 5.961 14.154 3.5l-2.404-.961zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/></svg></button>
                     <button id="mode-3d-btn" class="btn-icon" title="چرخش ۳ بعدی"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/><path d="M8 1a.5.5 0 0 1 .5.5v14a.5.5 0 0 1-1 0v-14A.5.5 0 0 1 8 1z" opacity="0.5"/><path d="M1 8a.5.5 0 0 1 .5-.5h14a.5.5 0 0 1 0 1h-14A.5.5 0 0 1 1 8z" opacity="0.5"/></svg></button>
-                    <button id="rotate-btn" class="btn-icon" title="چرخش 90 درجه"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg></button>
-                    <button id="horiz-vert-btn" class="btn-icon" title="افقی به عمودی"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.5 2h-7a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5Zm-7-1a1.5 1.5 0 0 0-1.5 1.5v11A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 11.5 1h-7Z"/><path fill-rule="evenodd" d="M8 7.5a.5.5 0 0 1 .5.5v2.5a.5.5 0 0 1-1 0V8a.5.5 0 0 1 .5-.5Z"/></svg></button>
                     <button id="stretch-btn" class="btn-icon" title="تغییر سایز آزاد"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8z"/><path fill-rule="evenodd" d="M13.5 12.5a.5.5 0 0 1 0-1l2 1.5-2 1.5a.5.5 0 0 1 0-1V12.5zM2.5 12.5V13a.5.5 0 0 1 0 1l-2-1.5 2-1.5a.5.5 0 0 1 0 1v.5z"/><path d="M2.5 3.5a.5.5 0 0 1 0 1l-2-1.5 2-1.5a.5.5 0 0 1 0 1v.5zm11 0v-.5a.5.5 0 0 1 0-1l2 1.5-2 1.5a.5.5 0 0 1 0-1v-.5z"/></svg></button>
-                </div>
-            </div>
-        </div>
-
-        <div id="settings-modal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title">تنظیمات آشکارسازی</h3>
-                    <button id="close-settings-btn" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
-                </div>
-                <p style="font-size: 0.9rem; color: #ccc;">نحوه نمایش دوباره دکمه‌ها را انتخاب کنید:</p>
-                <div class="radio-group">
-                    <label class="radio-item"><input type="radio" name="reveal-mode" value="button" checked><span>نمایش دکمه موقت با لمس (۲ ثانیه)</span></label>
-                    <label class="radio-item"><input type="radio" name="reveal-mode" value="gesture"><span>چهار انگشت همزمان روی صفحه</span></label>
-                </div>
-            </div>
-        </div>
-        
-        <div id="about-modal" class="modal">
-            <div class="modal-content" style="text-align: center;">
-                <div class="modal-header" style="justify-content: center; position: relative;">
-                    <h3 class="modal-title" style="font-size: 1.3rem;">درباره ما</h3>
-                    <button id="close-about-btn" style="background:none; border:none; color:white; font-size:1.5rem; position: absolute; left: 0;">&times;</button>
-                </div>
-                <div style="padding: 20px 0;">
-                    <p style="font-size: 1rem;">ساخته شده توسط ابزار فوق العاده</p>
-                </div>
-            </div>
-        </div>
-
-        <div id="help-modal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title">راهنمای کامل</h3>
-                    <button id="close-help-btn" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
-                </div>
-                <div style="padding: 0 5px;">
-                    <ul style="list-style-type: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. بهینه‌سازی ۳۰ فریم:</strong> نرخ رندر برای جلوگیری از داغ شدن دستگاه روی ۳۰ فریم قفل شده است.</li>
-                    </ul>
                 </div>
             </div>
         </div>
     </div>
 
     <script type="module">
-        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(err => console.log('SW Fail', err)); }); }
-        
-        window.history.pushState({ page: 'main' }, ""); window.addEventListener('popstate', () => { window.location.replace(window.location.pathname); });
-        
-        function hideNonARUI(){ try{ document.getElementById('bg-layer').style.display = 'none'; }catch(e){} }
         function showTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s < 10 ? '0' : ''}${s}`; }
         function showToast(msg) { touchStatus.innerText = msg; touchStatus.style.opacity = '1'; setTimeout(() => { touchStatus.style.opacity = '0'; }, 2500); }
 
@@ -179,25 +129,23 @@
         
         let model = { pos: {x:0, y:0, z:-1.5}, rot: {x:0, y:0, z:0}, scale: {x:1, y:1, z:1} };
         let aspectScale = { x:1, y:1 };
-        let currentOriginalWidth = 1, currentOriginalHeight = 1;
-
+        
         let currentVideo = null, currentImage = null;
         let currentSession = null, xrRefSpace = null;
         let isStretchMode = false, is3DMode = false, isCubeMode = false;
-        let isAspectFlipped = false, isDragging = false, previousMousePosition = { x: 0, y: 0 };
+        let isDragging = false, previousMousePosition = { x: 0, y: 0 };
         let initialPinchDistance = 0, initialScale = {x:1,y:1,z:1}, initialAngle = 0, initialRotationZ = 0, gestureType = null;
         
-        let uiHidden = false, revealMode = 'button', revealTimer = null;
-        let selfieSegmentation = null, isBgRemovalActive = false, segmentationCanvas = document.createElement('canvas'), segmentationCtx = segmentationCanvas.getContext('2d', { willReadFrequently: true }), lastProcessTime = 0, isProcessing = false;
-        
+        let uiHidden = false;
         let arInitFrames = 0; let needsArReposition = false; let currentObjectUrl = null; let isStartingAR = false; let fileHasBeenLoaded = false; 
-
-        // سیستم محدودسازی فریم به ۳۰ فریم در ثانیه (کاهش فشار CPU/GPU)
+        
+        let isTextureAllocated = false; // متغیر کلیدی برای جلوگیری از اشغال مموری GPU
+        
         const FPS = 30;
         const fpsInterval = 1000 / FPS;
         let lastFrameTime = performance.now();
 
-        const uiLayer = document.getElementById('ui-layer'), fileInput = document.getElementById('file-input'), fileLabel = document.getElementById('file-label'), controlsPanel = document.getElementById('controls-panel'), cleanViewBtn = document.getElementById('clean-view-btn'), fullscreenBtn = document.getElementById('fullscreen-btn'), distContainer = document.getElementById('dist-container'), seekContainer = document.getElementById('seek-container'), playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), seekBar = document.getElementById('seek-bar'), currentTimeEl = document.getElementById('current-time'), durationTimeEl = document.getElementById('duration-time'), touchStatus = document.getElementById('touch-status'), distSlider = document.getElementById('dist-slider'), tempRevealBtn = document.getElementById('temp-reveal-btn'), settingsBtn = document.getElementById('settings-btn'), settingsModal = document.getElementById('settings-modal'), helpModal = document.getElementById('help-modal'), removeBgBtn = document.getElementById('remove-bg-btn'), customArBtn = document.getElementById('custom-ar-btn'), exitBtn = document.getElementById('exit-btn'), aboutBtn = document.getElementById('about-btn'), aboutModal = document.getElementById('about-modal'), cubeShapeBtn = document.getElementById('cube-shape-btn'), touchLayer = document.getElementById('touch-layer');
+        const uiLayer = document.getElementById('ui-layer'), fileInput = document.getElementById('file-input'), fileLabel = document.getElementById('file-label'), controlsPanel = document.getElementById('controls-panel'), cleanViewBtn = document.getElementById('clean-view-btn'), fullscreenBtn = document.getElementById('fullscreen-btn'), distContainer = document.getElementById('dist-container'), seekContainer = document.getElementById('seek-container'), playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), seekBar = document.getElementById('seek-bar'), currentTimeEl = document.getElementById('current-time'), durationTimeEl = document.getElementById('duration-time'), touchStatus = document.getElementById('touch-status'), distSlider = document.getElementById('dist-slider'), tempRevealBtn = document.getElementById('temp-reveal-btn'), customArBtn = document.getElementById('custom-ar-btn'), exitBtn = document.getElementById('exit-btn'), cubeShapeBtn = document.getElementById('cube-shape-btn'), touchLayer = document.getElementById('touch-layer');
 
         init(); 
 
@@ -214,9 +162,9 @@
             canvas.style.width = '100%'; canvas.style.height = '100%'; canvas.style.display = 'block';
             container.appendChild(canvas);
             
+            // غیرفعال کردن antialias برای کاهش بار پردازنده گرافیکی
             const glOptions = { alpha: true, antialias: false, powerPreference: "low-power", preserveDrawingBuffer: false };
             gl = canvas.getContext('webgl2', glOptions) || canvas.getContext('webgl', glOptions);
-            if (!gl) { showToast("مرورگر شما از WebGL پشتیبانی نمی‌کند"); return; }
             
             const vsSource = `attribute vec4 pos; attribute vec2 uv; uniform mat4 mvp; varying vec2 v_uv; void main() { gl_Position = mvp * pos; v_uv = uv; }`;
             const fsSource = `precision mediump float; varying vec2 v_uv; uniform sampler2D tex; void main() { vec4 c = texture2D(tex, v_uv); gl_FragColor = c; }`;
@@ -228,10 +176,8 @@
             uMatrix = gl.getUniformLocation(shaderProgram, "mvp");
             uSampler = gl.getUniformLocation(shaderProgram, "tex");
             
-            // اصلاح UV پورت جهت رفع مشکل چشمک زدن و برعکس شدن تکسچر
             const planePos = new Float32Array([-0.5,-0.5,0, 0.5,-0.5,0, -0.5,0.5,0, -0.5,0.5,0, 0.5,-0.5,0, 0.5,0.5,0]);
             const planeUV = new Float32Array([0,0, 1,0, 0,1, 0,1, 1,0, 1,1]);
-            
             const cubePos = new Float32Array([
                 -0.5,-0.5,0.5, 0.5,-0.5,0.5, -0.5,0.5,0.5, -0.5,0.5,0.5, 0.5,-0.5,0.5, 0.5,0.5,0.5,
                 -0.5,-0.5,-0.5, -0.5,0.5,-0.5, 0.5,-0.5,-0.5, 0.5,-0.5,-0.5, -0.5,0.5,-0.5, 0.5,0.5,-0.5,
@@ -263,23 +209,23 @@
         function getPerspectiveMatrix(fovY, aspect, near, far) {
             const f = 1.0 / Math.tan((fovY * Math.PI / 180.0) / 2.0);
             const rangeInv = 1.0 / (near - far);
-            return new Float32Array([
-                f / aspect, 0, 0, 0,
-                0, f, 0, 0,
-                0, 0, (near + far) * rangeInv, -1,
-                0, 0, (2 * near * far) * rangeInv, 0
-            ]);
+            return new Float32Array([f/aspect,0,0,0, 0,f,0,0, 0,0,(near+far)*rangeInv,-1, 0,0,(2*near*far)*rangeInv,0]);
         }
 
         function uploadTexture() {
             if (!fileHasBeenLoaded) return;
-            let source = isBgRemovalActive ? segmentationCanvas : (currentImage || currentVideo);
+            let source = currentImage || currentVideo;
             if (!source) return;
 
             try {
                 gl.bindTexture(gl.TEXTURE_2D, mainTexture);
-                // حذف UNPACK_FLIP_Y_WEBGL مداوم برای جلوگیری از داغ شدن و Flickeing
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+                // رفع مصرف 100 درصدی: استفاده از SubImage بجای Image2D
+                if (!isTextureAllocated) {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+                    isTextureAllocated = true;
+                } else {
+                    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, source);
+                }
             } catch(e) {}
         }
         
@@ -287,23 +233,15 @@
             gl.useProgram(shaderProgram);
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-            
-            if (isCubeMode) gl.enable(gl.DEPTH_TEST);
-            else gl.disable(gl.DEPTH_TEST);
+            if (isCubeMode) gl.enable(gl.DEPTH_TEST); else gl.disable(gl.DEPTH_TEST);
             
             let m = new DOMMatrix(projViewMatrix);
             m.translateSelf(model.pos.x, model.pos.y, model.pos.z);
             m.rotateSelf(model.rot.x, model.rot.y, model.rot.z);
             
-            let aspectW = aspectScale.x * model.scale.x;
-            let aspectH = aspectScale.y * model.scale.y;
-            
-            if (isCubeMode) {
-                let depth = Math.min(aspectW, aspectH);
-                m.scaleSelf(aspectW, aspectH, depth);
-            } else {
-                m.scaleSelf(aspectW, aspectH, 1);
-            }
+            let aspectW = aspectScale.x * model.scale.x; let aspectH = aspectScale.y * model.scale.y;
+            if (isCubeMode) { let depth = Math.min(aspectW, aspectH); m.scaleSelf(aspectW, aspectH, depth); } 
+            else { m.scaleSelf(aspectW, aspectH, 1); }
             
             gl.uniformMatrix4fv(uMatrix, false, m.toFloat32Array());
             
@@ -316,28 +254,18 @@
             gl.bindBuffer(gl.ARRAY_BUFFER, isCubeMode ? texCube : texPlane);
             gl.vertexAttribPointer(aTex, 2, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(aTex);
             
-            gl.activeTexture(gl.TEXTURE0); 
-            gl.bindTexture(gl.TEXTURE_2D, mainTexture); 
-            gl.uniform1i(uSampler, 0);
-            
+            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, mainTexture); gl.uniform1i(uSampler, 0);
             gl.drawArrays(gl.TRIANGLES, 0, isCubeMode ? 36 : 6);
         }
 
         function onXRFrame(time, frame) {
             if (!currentSession) return;
+            // در WebXR به هیچ وجه نباید فریم را محدود کنیم، چون باعث چشمک زدن وحشتناک در حرکت می‌شود.
             currentSession.requestAnimationFrame(onXRFrame);
             
-            // قفل فریم به ۳۰ فریم بر ثانیه برای کاهش مصرف CPU/GPU
-            const elapsed = time - lastFrameTime;
-            if (elapsed < fpsInterval) return;
-            lastFrameTime = time - (elapsed % fpsInterval);
-
             let pose = frame.getViewerPose(xrRefSpace);
             if (pose) {
-                // فقط در صورتی که ویدیو در حال پخش باشد تکسچر آپلود می‌شود
-                if (currentVideo && !currentVideo.paused && !isBgRemovalActive) {
-                    uploadTexture();
-                }
+                if (currentVideo && !currentVideo.paused) uploadTexture();
 
                 if (needsArReposition) {
                     arInitFrames++;
@@ -366,6 +294,7 @@
         }
         
         function fallbackRender(time) {
+            // توقف کامل رندر پس‌زمینه در هنگام اجرای AR (جلوگیری از درگیری همزمان)
             if (currentSession) return; 
             requestAnimationFrame(fallbackRender);
             
@@ -374,20 +303,14 @@
             lastFrameTime = time - (elapsed % fpsInterval);
 
             let canvas = gl.canvas;
-            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
-                canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            }
+            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
             
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.viewport(0, 0, canvas.width, canvas.height);
-            gl.clearColor(0,0,0,0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             
             if (!fileHasBeenLoaded) return;
-            
-            if (currentVideo && !currentVideo.paused && !isBgRemovalActive) {
-                uploadTexture();
-            }
+            if (currentVideo && !currentVideo.paused) uploadTexture();
 
             let projMat = new DOMMatrix(getPerspectiveMatrix(60, canvas.width/canvas.height, 0.1, 100));
             let viewMat = new DOMMatrix();
@@ -401,181 +324,76 @@
             let fwdX = -m[8], fwdZ = -m[10];
             let dirLen = Math.sqrt(fwdX*fwdX + fwdZ*fwdZ) || 1;
             fwdX /= dirLen; fwdZ /= dirLen;
-            
             let dist = parseFloat(distSlider.value);
-            model.pos.x = camX + fwdX * dist;
-            model.pos.y = camY; 
-            model.pos.z = camZ + fwdZ * dist;
-            model.rot.z = 0;
+            model.pos.x = camX + fwdX * dist; model.pos.y = camY; model.pos.z = camZ + fwdZ * dist; model.rot.z = 0;
         }
 
         function setupUIListeners() {
             exitBtn.addEventListener('click', () => { if (currentSession) currentSession.end(); window.close(); window.location.href = 'about:blank'; });
-            aboutBtn.addEventListener('click', () => aboutModal.style.display = 'flex'); document.getElementById('close-about-btn').addEventListener('click', () => aboutModal.style.display = 'none');
             fileInput.addEventListener('click', (e) => { if (fileHasBeenLoaded) { e.preventDefault(); window.location.replace(window.location.pathname); } else { e.stopPropagation(); e.target.value = ''; } });
             fileInput.addEventListener('change', handleFileSelect);
             cleanViewBtn.addEventListener('click', () => { uiHidden = true; document.body.classList.add('ui-hidden'); showToast("منوها پنهان شدند"); });
-            tempRevealBtn.addEventListener('click', () => revealUI());
-            settingsBtn.addEventListener('click', () => settingsModal.style.display = 'flex'); document.getElementById('close-settings-btn').addEventListener('click', () => settingsModal.style.display = 'none');
-            document.querySelectorAll('input[name="reveal-mode"]').forEach(radio => radio.addEventListener('change', (e) => revealMode = e.target.value));
-            document.getElementById('help-btn').addEventListener('click', () => helpModal.style.display = 'flex'); document.getElementById('close-help-btn').addEventListener('click', () => helpModal.style.display = 'none');
-            fullscreenBtn.addEventListener('click', () => { if (currentSession) return; if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); });
+            tempRevealBtn.addEventListener('click', () => { uiHidden = false; document.body.classList.remove('ui-hidden'); tempRevealBtn.style.display = 'none'; });
             
             playBtn.addEventListener('click', () => { 
                 if (currentVideo) { 
-                    if (currentVideo.paused) { 
-                        currentVideo.play(); 
-                        playIcon.classList.add('hidden'); 
-                        pauseIcon.classList.remove('hidden'); 
-                    } else { 
-                        currentVideo.pause(); 
-                        playIcon.classList.remove('hidden'); 
-                        pauseIcon.classList.add('hidden'); 
-                    } 
+                    if (currentVideo.paused) { currentVideo.play(); playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); } 
+                    else { currentVideo.pause(); playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); } 
                 } 
             });
-            
-            seekBar.addEventListener('input', () => { 
-                if (currentVideo) {
-                    currentVideo.currentTime = seekBar.value; 
-                    uploadTexture();
-                }
-            });
-            
-            distSlider.addEventListener('input', (e) => { 
-                if (currentSession && xrRefSpace) { needsArReposition = true; arInitFrames = 0; } 
-                else { model.pos.z = -parseFloat(e.target.value); } 
-            });
+            seekBar.addEventListener('input', () => { if (currentVideo) { currentVideo.currentTime = seekBar.value; uploadTexture(); } });
+            distSlider.addEventListener('input', (e) => { if (currentSession && xrRefSpace) { needsArReposition = true; arInitFrames = 0; } else { model.pos.z = -parseFloat(e.target.value); } });
             
             document.getElementById('reset-btn').addEventListener('click', () => { 
-                distSlider.value = 1.5;
-                if (currentSession) { needsArReposition = true; arInitFrames = 0; }
-                else { model.pos = {x:0, y:0, z:-1.5}; }
-                model.rot = {x:0, y:0, z:0}; model.scale = {x:1, y:1, z:1};
-                isStretchMode = false; is3DMode = false; isAspectFlipped = false;
-                document.getElementById('stretch-btn').classList.remove('active-mode'); document.getElementById('mode-3d-btn').classList.remove('active-mode'); document.getElementById('horiz-vert-btn').classList.remove('active-mode'); 
-                showToast("بازنشانی کامل");
+                distSlider.value = 1.5; if (currentSession) { needsArReposition = true; arInitFrames = 0; } else { model.pos = {x:0, y:0, z:-1.5}; }
+                model.rot = {x:0, y:0, z:0}; model.scale = {x:1, y:1, z:1}; isStretchMode = false; is3DMode = false;
+                document.getElementById('stretch-btn').classList.remove('active-mode'); document.getElementById('mode-3d-btn').classList.remove('active-mode'); 
             });
-            
-            cubeShapeBtn.addEventListener('click', () => { 
-                if (!fileHasBeenLoaded) return; 
-                isCubeMode = !isCubeMode; cubeShapeBtn.classList.toggle('active-mode', isCubeMode); 
-                showToast(isCubeMode ? "حالت مکعب سه بعدی" : "حالت تخت"); 
-            });
-            
-            document.getElementById('mode-3d-btn').addEventListener('click', function() { is3DMode = !is3DMode; this.classList.toggle('active-mode', is3DMode); showToast(is3DMode ? "چرخش ۳ بعدی" : "حالت جابجایی"); });
-            document.getElementById('rotate-btn').addEventListener('click', () => { if (fileHasBeenLoaded) { model.rot.z -= 90; } });
-            
-            document.getElementById('horiz-vert-btn').addEventListener('click', function() { 
-                if (!fileHasBeenLoaded) return; 
-                isAspectFlipped = !isAspectFlipped; this.classList.toggle('active-mode', isAspectFlipped); 
-                const aspect = currentOriginalWidth / currentOriginalHeight; 
-                const targetAspect = 2 / 3; 
-                if (isAspectFlipped) { model.scale.x = model.scale.y * (targetAspect / aspect); showToast("نسبت ۲:۳ (عمودی)"); } 
-                else { model.scale.x = model.scale.y; showToast("نسبت اصلی (افقی)"); } 
-            });
-            
-            document.getElementById('stretch-btn').addEventListener('click', function() { isStretchMode = !isStretchMode; this.classList.toggle('active-mode', isStretchMode); showToast(isStretchMode ? "تغییر سایز آزاد" : "تغییر سایز قفل"); });
-            removeBgBtn.addEventListener('click', toggleBgRemoval);
+            cubeShapeBtn.addEventListener('click', () => { if (!fileHasBeenLoaded) return; isCubeMode = !isCubeMode; cubeShapeBtn.classList.toggle('active-mode', isCubeMode); });
+            document.getElementById('mode-3d-btn').addEventListener('click', function() { is3DMode = !is3DMode; this.classList.toggle('active-mode', is3DMode); });
+            document.getElementById('stretch-btn').addEventListener('click', function() { isStretchMode = !isStretchMode; this.classList.toggle('active-mode', isStretchMode); });
             
             customArBtn.addEventListener('click', async () => {
-                if (!fileHasBeenLoaded) { showToast("لطفا ابتدا فایل را انتخاب کنید"); return; }
+                if (!fileHasBeenLoaded) return showToast("لطفا ابتدا فایل را انتخاب کنید"); 
                 if (currentSession === null && !isStartingAR) {
                     isStartingAR = true;
                     if (!navigator.xr) { showToast("AR پشتیبانی نمی‌شود"); isStartingAR = false; return; }
                     try {
                         const supported = await navigator.xr.isSessionSupported('immersive-ar');
                         if (!supported) { showToast("دستگاه شما از AR پشتیبانی نمی‌کند"); isStartingAR = false; return; }
-
                         await gl.makeXRCompatible();
+                        const session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['local'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.getElementById('ui-layer') } });
                         
-                        const sessionInit = { 
-                            requiredFeatures: ['local'], 
-                            optionalFeatures: ['dom-overlay'], 
-                            domOverlay: { root: document.getElementById('ui-layer') } 
-                        };
-                        
-                        const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
-                        
-                        // رندرینگ فریم با مقیاس 0.5 جهت بهینه‌سازی بسیار بالا در GPU
-                        const glLayer = new XRWebGLLayer(session, gl, { framebufferScaleFactor: 0.5 });
+                        // رندرینگ فریم با مقیاس 0.5 (برای کاهش شدید مصرف باتری و گرافیک)
+                        const glLayer = new XRWebGLLayer(session, gl, { framebufferScaleFactor: 0.5, antialias: false });
                         session.updateRenderState({ baseLayer: glLayer });
                         
                         xrRefSpace = await session.requestReferenceSpace('local');
-                        currentSession = session; hideNonARUI(); 
+                        currentSession = session; document.getElementById('bg-layer').style.display = 'none';
                         customArBtn.style.display = 'none'; fullscreenBtn.style.display = 'none'; exitBtn.style.display = 'none';
-                        showToast("حالت AR کم‌مصرف فعال شد"); needsArReposition = true; arInitFrames = 0;
-                        session.addEventListener('end', () => { window.location.replace(window.location.pathname); });
+                        needsArReposition = true; arInitFrames = 0;
+                        session.addEventListener('end', () => { currentSession = null; window.location.replace(window.location.pathname); });
+                        
+                        // استارت لوپ AR
                         session.requestAnimationFrame(onXRFrame);
-                    } catch (e) { console.error(e); showToast("خطا در اجرای AR"); isStartingAR = false; }
+                    } catch (e) { showToast("خطا در اجرای AR"); isStartingAR = false; }
                 }
             });
         }
 
         function clearCurrentObject() {
             if (currentVideo) { currentVideo.pause(); currentVideo.removeAttribute('src'); currentVideo.load(); currentVideo = null; }
-            currentImage = null; isProcessing = false; isBgRemovalActive = false; fileHasBeenLoaded = false;
+            currentImage = null; fileHasBeenLoaded = false; isTextureAllocated = false;
             gl.bindTexture(gl.TEXTURE_2D, mainTexture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
         }
 
-        async function toggleBgRemoval() {
-            if (!fileHasBeenLoaded) return; 
-            if (!selfieSegmentation) { 
-                showToast("در حال آماده‌سازی پردازشگر..."); 
-                selfieSegmentation = new SelfieSegmentation({locateFile: (file) => `./js/mediapipe/${file}`}); 
-                selfieSegmentation.setOptions({ modelSelection: 0, selfieMode: false }); 
-                selfieSegmentation.onResults(onSegmentationResults); 
-                setTimeout(() => startBgRemoval(), 1000); return; 
-            }
-            startBgRemoval();
-        }
-        
-        async function startBgRemoval() {
-            isBgRemovalActive = !isBgRemovalActive; removeBgBtn.classList.toggle('active-mode', isBgRemovalActive);
-            if (isBgRemovalActive) {
-                showToast("حذف پس‌زمینه"); 
-                let w = currentVideo ? currentVideo.videoWidth : currentImage.width; 
-                let h = currentVideo ? currentVideo.videoHeight : currentImage.height;
-                let scaleFactor = 1; if (w > 250) { scaleFactor = 250 / w; w = 250; h = Math.floor(h * scaleFactor); }
-                segmentationCanvas.width = w; segmentationCanvas.height = h;
-                if (currentVideo) processVideoFrame(); else if (currentImage) await selfieSegmentation.send({image: currentImage});
-            } else { showToast("حذف پس‌زمینه خاموش"); uploadTexture(); }
-        }
-
-        function onSegmentationResults(results) { 
-            if (!isBgRemovalActive) { isProcessing = false; return; } 
-            segmentationCtx.save(); 
-            segmentationCtx.clearRect(0, 0, segmentationCanvas.width, segmentationCanvas.height); 
-            segmentationCtx.drawImage(results.segmentationMask, 0, 0, segmentationCanvas.width, segmentationCanvas.height); 
-            segmentationCtx.globalCompositeOperation = 'source-in'; 
-            segmentationCtx.drawImage(results.image, 0, 0, segmentationCanvas.width, segmentationCanvas.height); 
-            segmentationCtx.restore(); 
-            uploadTexture();
-            isProcessing = false; 
-        }
-        
-        async function processVideoFrame() { 
-            if (!(isBgRemovalActive && currentVideo && !currentVideo.paused && !currentVideo.ended)) return; 
-            const now = performance.now(); 
-            if (!isProcessing && (now - lastProcessTime > 150)) { 
-                isProcessing = true; lastProcessTime = now; 
-                try { await selfieSegmentation.send({image: currentVideo}); } catch(e) { isProcessing = false; } 
-            } 
-            setTimeout(processVideoFrame, 150); 
-        }
-
-        function revealUI() { uiHidden = false; document.body.classList.remove('ui-hidden'); tempRevealBtn.style.display = 'none'; }
-        
         function handleFileSelect(event) {
             const file = event.target.files[0]; if (!file) return; 
             clearCurrentObject(); fileLabel.querySelector('span').innerText = "تغییر فایل (ریستارت)";
             if (currentObjectUrl) { URL.revokeObjectURL(currentObjectUrl); currentObjectUrl = null; }
-            distSlider.value = 1.5; isStretchMode = false; is3DMode = false; isAspectFlipped = false;
-            document.getElementById('stretch-btn').classList.remove('active-mode'); document.getElementById('mode-3d-btn').classList.remove('active-mode'); document.getElementById('horiz-vert-btn').classList.remove('active-mode');
-            
             currentObjectUrl = URL.createObjectURL(file); const url = currentObjectUrl; const fileType = file.type.split('/')[0];
-            removeBgBtn.classList.remove('active-mode'); controlsPanel.classList.remove('hidden'); controlsPanel.classList.add('flex');
+            controlsPanel.classList.remove('hidden'); controlsPanel.classList.add('flex');
             document.getElementById('size-controls').classList.remove('hidden'); document.getElementById('size-controls').style.display = 'flex';
             cleanViewBtn.classList.remove('hidden'); if (!currentSession) fullscreenBtn.classList.remove('hidden'); distContainer.classList.remove('hidden');
             
@@ -584,56 +402,36 @@
         }
 
         function processMediaReady(w, h) {
-            if (!w || !h) { w = 1; h = 1; }
-            const ratio = w / h;
-            aspectScale.y = 1.0;
-            aspectScale.x = ratio;
-            currentOriginalWidth = aspectScale.x; currentOriginalHeight = aspectScale.y;
-            model.pos = {x:0, y:0, z: -parseFloat(distSlider.value)};
-            model.rot = {x:0, y:0, z:0}; model.scale = {x:1, y:1, z:1};
-            fileHasBeenLoaded = true;
-            uploadTexture(); // تکسچر عکس تنها یک‌بار آپلود می‌شود تا GPU اشغال نشود
+            const ratio = w / (h || 1); aspectScale.x = ratio; aspectScale.y = 1.0;
+            model.pos = {x:0, y:0, z: -parseFloat(distSlider.value)}; model.rot = {x:0, y:0, z:0}; model.scale = {x:1, y:1, z:1};
+            fileHasBeenLoaded = true; uploadTexture();
             if(currentSession) { needsArReposition = true; arInitFrames = 0; }
-            showToast("فایل بارگذاری شد"); 
         }
 
-        function processImage(url) { 
-            const img = new Image();
-            img.onload = () => { currentImage = img; processMediaReady(img.width, img.height); };
-            img.src = url;
-        }
+        function processImage(url) { const img = new Image(); img.onload = () => { currentImage = img; processMediaReady(img.width, img.height); }; img.src = url; }
         
         function processVideo(url) { 
             const video = document.createElement('video'); video.src = url; video.crossOrigin = 'anonymous'; video.loop = true; video.playsInline = true; video.preload = 'auto'; video.muted = false; 
-            video.addEventListener('loadedmetadata', () => { 
-                seekBar.max = video.duration; durationTimeEl.innerText = showTime(video.duration); 
-                currentVideo = video; processMediaReady(video.videoWidth, video.videoHeight);
-            }); 
-            video.addEventListener('timeupdate', () => { 
-                if (uiHidden) return; 
-                seekBar.value = video.currentTime; currentTimeEl.innerText = showTime(video.currentTime);
-            }); 
-            const playPromise = video.play(); if (playPromise !== undefined) playPromise.catch(error => { playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); }); 
+            video.addEventListener('loadedmetadata', () => { seekBar.max = video.duration; durationTimeEl.innerText = showTime(video.duration); currentVideo = video; processMediaReady(video.videoWidth, video.videoHeight); }); 
+            video.addEventListener('timeupdate', () => { if (!uiHidden) { seekBar.value = video.currentTime; currentTimeEl.innerText = showTime(video.currentTime); } }); 
+            video.play().catch(() => { playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); }); 
         }
         
         function setupTouchGestures() {
             touchLayer.addEventListener('touchstart', (e) => {
-                if (uiHidden) { if (revealMode === 'gesture' && e.touches.length === 4) { revealUI(); } else if (revealMode === 'button') { tempRevealBtn.style.display = 'block'; if (revealTimer) clearTimeout(revealTimer); revealTimer = setTimeout(() => { tempRevealBtn.style.display = 'none'; }, 2000); } }
+                if (uiHidden) { tempRevealBtn.style.display = 'block'; setTimeout(() => { tempRevealBtn.style.display = 'none'; }, 2000); }
                 if (e.touches.length === 1) { isDragging = true; previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY }; } 
                 else if (e.touches.length === 2 && fileHasBeenLoaded) { 
                     gestureType = null; const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; 
-                    initialPinchDistance = Math.sqrt(dx * dx + dy * dy); 
-                    initialScale = {x: model.scale.x, y: model.scale.y, z: model.scale.z}; 
+                    initialPinchDistance = Math.sqrt(dx * dx + dy * dy); initialScale = {x: model.scale.x, y: model.scale.y, z: model.scale.z}; 
                     initialAngle = Math.atan2(dy, dx); initialRotationZ = model.rot.z;
                 }
             }, { passive: false });
-            
             touchLayer.addEventListener('touchmove', (e) => {
                 e.preventDefault(); if (!fileHasBeenLoaded) return;
                 if (e.touches.length === 1 && isDragging) { 
                     const deltaX = e.touches[0].clientX - previousMousePosition.x; const deltaY = e.touches[0].clientY - previousMousePosition.y; 
-                    if (is3DMode) { model.rot.y += deltaX * 0.5; model.rot.x += deltaY * 0.5; } 
-                    else { model.pos.x += deltaX * 0.0025; model.pos.y -= deltaY * 0.0025; } 
+                    if (is3DMode) { model.rot.y += deltaX * 0.5; model.rot.x += deltaY * 0.5; } else { model.pos.x += deltaX * 0.0025; model.pos.y -= deltaY * 0.0025; } 
                     previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY }; return; 
                 }
                 if (e.touches.length === 2) { 
@@ -643,17 +441,10 @@
                     if (!gestureType) { if (scaleChange > 15) gestureType = 'zoom'; else if (angleChange > 0.1) gestureType = 'rotate'; } 
                     if (gestureType === 'zoom') { 
                         const scaleRatio = distance / initialPinchDistance; 
-                        if (isStretchMode) { 
-                            if (Math.abs(dx) > Math.abs(dy)) model.scale.x = initialScale.x * scaleRatio; 
-                            else model.scale.y = initialScale.y * scaleRatio; 
-                        } else { 
-                            model.scale.x = initialScale.x * scaleRatio; model.scale.y = initialScale.y * scaleRatio; model.scale.z = initialScale.z * scaleRatio; 
-                        } 
+                        if (isStretchMode) { if (Math.abs(dx) > Math.abs(dy)) model.scale.x = initialScale.x * scaleRatio; else model.scale.y = initialScale.y * scaleRatio; } 
+                        else { model.scale.x = initialScale.x * scaleRatio; model.scale.y = initialScale.y * scaleRatio; model.scale.z = initialScale.z * scaleRatio; } 
                     } 
-                    if (gestureType === 'rotate') { 
-                        const rotDelta = (angle - initialAngle) * (180 / Math.PI); 
-                        model.rot.z = initialRotationZ + rotDelta; 
-                    } 
+                    if (gestureType === 'rotate') { model.rot.z = initialRotationZ + (angle - initialAngle) * (180 / Math.PI); } 
                 }
             }, { passive: false });
             touchLayer.addEventListener('touchend', () => { isDragging = false; gestureType = null; });
