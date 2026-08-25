@@ -193,9 +193,7 @@
         
         let arInitFrames = 0; let needsArReposition = false; let currentObjectUrl = null; let isStartingAR = false; let fileHasBeenLoaded = false; 
         
-        // کنترل بهینه‌سازی و فریز
         let textureUploaded = false;
-        let cachedStaticMVP = null;
         let arRenderRendered = false;
 
         const PROCESS_INTERVAL = 66; 
@@ -263,13 +261,13 @@
         }
         
         function getPerspectiveMatrix(fovY, aspect, near, far) {
-            const f = 1.0 / Math.tan(fovY * Math.PI / 360.0);
-            const nf = 1 / (near - far);
-            return new DOMMatrix([
-                f / aspect, 0, 0, 0,  
-                0, f, 0, 0,  
-                0, 0, (far + near) * nf, -1,  
-                0, 0, (2 * far * near) * nf, 0
+            const f = 1.0 / Math.tan((fovY * Math.PI / 180.0) / 2.0);
+            const rangeInv = 1.0 / (near - far);
+            return new Float32Array([
+                f / aspect, 0, 0, 0,
+                0, f, 0, 0,
+                0, 0, (near + far) * rangeInv, -1,
+                0, 0, (2 * near * far) * rangeInv, 0
             ]);
         }
 
@@ -278,15 +276,16 @@
             let source = isBgRemovalActive ? segmentationCanvas : (currentImage || currentVideo);
             if (!source) return;
 
-            gl.bindTexture(gl.TEXTURE_2D, mainTexture);
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-            textureUploaded = true;
-            
-            // متوقف کردن کامل ویدیو پس از ثبت تکسچر
-            if (currentVideo && !currentVideo.paused) {
-                currentVideo.pause();
-            }
+            try {
+                gl.bindTexture(gl.TEXTURE_2D, mainTexture);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+                textureUploaded = true;
+                
+                if (currentVideo && !currentVideo.paused) {
+                    currentVideo.pause();
+                }
+            } catch(e) { console.log("Tex error", e); }
         }
         
         function drawScene(projViewMatrix) {
@@ -297,23 +296,18 @@
             if (isCubeMode) gl.enable(gl.DEPTH_TEST);
             else gl.disable(gl.DEPTH_TEST);
             
-            let m;
-            if (cachedStaticMVP) {
-                m = cachedStaticMVP;
+            let m = new DOMMatrix(projViewMatrix);
+            m.translateSelf(model.pos.x, model.pos.y, model.pos.z);
+            m.rotateSelf(model.rot.x, model.rot.y, model.rot.z);
+            
+            let aspectW = aspectScale.x * model.scale.x;
+            let aspectH = aspectScale.y * model.scale.y;
+            
+            if (isCubeMode) {
+                let depth = Math.min(aspectW, aspectH);
+                m.scaleSelf(aspectW, aspectH, depth);
             } else {
-                m = new DOMMatrix(projViewMatrix);
-                m.translateSelf(model.pos.x, model.pos.y, model.pos.z);
-                m.rotateSelf(model.rot.x, model.rot.y, model.rot.z);
-                
-                let aspectW = aspectScale.x * model.scale.x;
-                let aspectH = aspectScale.y * model.scale.y;
-                
-                if (isCubeMode) {
-                    let depth = Math.min(aspectW, aspectH);
-                    m.scaleSelf(aspectW, aspectH, depth);
-                } else {
-                    m.scaleSelf(aspectW, aspectH, 1);
-                }
+                m.scaleSelf(aspectW, aspectH, 1);
             }
             
             gl.uniformMatrix4fv(uMatrix, false, m.toFloat32Array());
@@ -335,11 +329,11 @@
         }
 
         function onXRFrame(time, frame) {
+            if (!currentSession) return;
             let session = frame.session;
             
-            // اگر یکبار رندر تثبیت شد، رندرینگ XR را برای صفر شدن مصرف کاملاً فریز کن
             if (arRenderRendered) {
-                return; 
+                return;
             }
 
             session.requestAnimationFrame(onXRFrame);
@@ -352,13 +346,15 @@
 
                 if (needsArReposition) {
                     arInitFrames++;
-                    if (arInitFrames > 5) { 
+                    if (arInitFrames > 2) { 
                         repositionObjectInFrontOfCamera(pose); 
                         needsArReposition = false; 
                     }
                 }
                 
                 let glLayer = session.renderState.baseLayer;
+                if (!glLayer) return;
+                
                 gl.bindFramebuffer(gl.FRAMEBUFFER, glLayer.framebuffer);
                 gl.clearColor(0,0,0,0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -372,8 +368,7 @@
                     drawScene(projMat.multiply(viewMat).toFloat32Array());
                 }
 
-                // ثبت شدن رندر اولیه و فعال شدن فریز کامل برای کاهش دما
-                if (!needsArReposition && arInitFrames > 5 && textureUploaded) {
+                if (!needsArReposition && arInitFrames > 2 && textureUploaded) {
                     arRenderRendered = true;
                 }
             }
@@ -399,13 +394,13 @@
                 uploadTexture();
             }
 
-            let projMat = getPerspectiveMatrix(60, canvas.width/canvas.height, 0.1, 100);
+            let projMat = new DOMMatrix(getPerspectiveMatrix(60, canvas.width/canvas.height, 0.1, 100));
             let viewMat = new DOMMatrix();
             drawScene(projMat.multiply(viewMat).toFloat32Array());
         }
 
         function repositionObjectInFrontOfCamera(pose) {
-            if (!pose) { model.pos.z = -parseFloat(distSlider.value); return; }
+            if (!pose || !pose.views || !pose.views[0]) { model.pos.z = -parseFloat(distSlider.value); return; }
             let m = pose.views[0].transform.matrix;
             let camX = m[12], camY = m[13], camZ = m[14];
             let fwdX = -m[8], fwdZ = -m[10];
@@ -417,7 +412,6 @@
             model.pos.y = camY; 
             model.pos.z = camZ + fwdZ * dist;
             model.rot.z = 0;
-            cachedStaticMVP = null;
         }
 
         function setupUIListeners() {
@@ -455,14 +449,12 @@
             });
             
             distSlider.addEventListener('input', (e) => { 
-                cachedStaticMVP = null;
                 arRenderRendered = false;
                 if (currentSession && xrRefSpace) { needsArReposition = true; arInitFrames = 0; } 
                 else { model.pos.z = -parseFloat(e.target.value); } 
             });
             
             document.getElementById('reset-btn').addEventListener('click', () => { 
-                cachedStaticMVP = null;
                 arRenderRendered = false;
                 distSlider.value = 1.5;
                 if (currentSession) { needsArReposition = true; arInitFrames = 0; }
@@ -476,12 +468,12 @@
             cubeShapeBtn.addEventListener('click', () => { 
                 if (!fileHasBeenLoaded) return; 
                 isCubeMode = !isCubeMode; cubeShapeBtn.classList.toggle('active-mode', isCubeMode); 
-                cachedStaticMVP = null; arRenderRendered = false;
+                arRenderRendered = false;
                 showToast(isCubeMode ? "حالت مکعب سه بعدی" : "حالت تخت"); 
             });
             
             document.getElementById('mode-3d-btn').addEventListener('click', function() { is3DMode = !is3DMode; this.classList.toggle('active-mode', is3DMode); showToast(is3DMode ? "چرخش ۳ بعدی" : "حالت جابجایی"); });
-            document.getElementById('rotate-btn').addEventListener('click', () => { if (fileHasBeenLoaded) { model.rot.z -= 90; cachedStaticMVP = null; arRenderRendered = false; } });
+            document.getElementById('rotate-btn').addEventListener('click', () => { if (fileHasBeenLoaded) { model.rot.z -= 90; arRenderRendered = false; } });
             
             document.getElementById('horiz-vert-btn').addEventListener('click', function() { 
                 if (!fileHasBeenLoaded) return; 
@@ -490,7 +482,7 @@
                 const targetAspect = 2 / 3; 
                 if (isAspectFlipped) { model.scale.x = model.scale.y * (targetAspect / aspect); showToast("نسبت ۲:۳ (عمودی)"); } 
                 else { model.scale.x = model.scale.y; showToast("نسبت اصلی (افقی)"); } 
-                cachedStaticMVP = null; arRenderRendered = false;
+                arRenderRendered = false;
             });
             
             document.getElementById('stretch-btn').addEventListener('click', function() { isStretchMode = !isStretchMode; this.classList.toggle('active-mode', isStretchMode); showToast(isStretchMode ? "تغییر سایز آزاد" : "تغییر سایز قفل"); });
@@ -502,11 +494,14 @@
                     isStartingAR = true;
                     if (!navigator.xr) { showToast("AR پشتیبانی نمی‌شود"); isStartingAR = false; return; }
                     try {
+                        const supported = await navigator.xr.isSessionSupported('immersive-ar');
+                        if (!supported) { showToast("دستگاه شما از AR پشتیبانی نمی‌کند"); isStartingAR = false; return; }
+
                         await gl.makeXRCompatible();
                         const sessionInit = { requiredFeatures: ['local'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.getElementById('ui-layer') } };
                         const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
                         
-                        session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl, { antialias: false, framebufferScaleFactor: 0.5 }) });
+                        session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
                         
                         xrRefSpace = await session.requestReferenceSpace('local');
                         currentSession = session; hideNonARUI(); 
@@ -514,14 +509,14 @@
                         showToast("حالت AR فعال شد"); needsArReposition = true; arInitFrames = 0; textureUploaded = false; arRenderRendered = false;
                         session.addEventListener('end', () => { window.location.replace(window.location.pathname); });
                         session.requestAnimationFrame(onXRFrame);
-                    } catch (e) { showToast("خطا در اجرای AR"); isStartingAR = false; }
+                    } catch (e) { console.error(e); showToast("خطا در اجرای AR"); isStartingAR = false; }
                 }
             });
         }
 
         function clearCurrentObject() {
             if (currentVideo) { currentVideo.pause(); currentVideo.removeAttribute('src'); currentVideo.load(); currentVideo = null; }
-            currentImage = null; textureUploaded = false; cachedStaticMVP = null; arRenderRendered = false;
+            currentImage = null; textureUploaded = false; arRenderRendered = false;
             isProcessing = false; isBgRemovalActive = false; fileHasBeenLoaded = false;
             gl.bindTexture(gl.TEXTURE_2D, mainTexture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
@@ -593,6 +588,7 @@
         }
 
         function processMediaReady(w, h) {
+            if (!w || !h) { w = 1; h = 1; }
             const ratio = w / h;
             aspectScale.y = 1.0;
             aspectScale.x = ratio;
@@ -601,7 +597,6 @@
             model.rot = {x:0, y:0, z:0}; model.scale = {x:1, y:1, z:1};
             fileHasBeenLoaded = true;
             textureUploaded = false;
-            cachedStaticMVP = null;
             if(currentSession) { needsArReposition = true; arInitFrames = 0; arRenderRendered = false; }
             showToast("فایل بارگذاری شد"); 
         }
@@ -639,7 +634,7 @@
             
             touchLayer.addEventListener('touchmove', (e) => {
                 e.preventDefault(); if (!fileHasBeenLoaded) return;
-                cachedStaticMVP = null; arRenderRendered = false;
+                arRenderRendered = false;
                 if (e.touches.length === 1 && isDragging) { 
                     const deltaX = e.touches[0].clientX - previousMousePosition.x; const deltaY = e.touches[0].clientY - previousMousePosition.y; 
                     if (is3DMode) { model.rot.y += deltaX * 0.5; model.rot.x += deltaY * 0.5; } 
