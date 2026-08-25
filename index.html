@@ -13,28 +13,27 @@
     <script src="js/webxr-polyfill.js" defer></script> 
     
     <style>
-        body { font-family: 'Vazirmatn', sans-serif; margin: 0; overflow: hidden; background-color: transparent; user-select: none; -webkit-tap-highlight-color: transparent; color: white; touch-action: none; }
+        body { font-family: 'Vazirmatn', sans-serif; margin: 0; overflow: hidden; background-color: #000; user-select: none; -webkit-tap-highlight-color: transparent; color: white; touch-action: none; }
         #bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; z-index: -1; }
         #ar-container { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1; touch-action: none; }
         #ar-container canvas { display: block; width: 100% !important; height: 100% !important; }
         
         #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; }
-        
         #touch-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; touch-action: none; pointer-events: auto; }
         
-        .ui-hidden .ui-top-bar, .ui-hidden .ui-bottom-controls { display: none !important; opacity: 0; pointer-events: none !important; transition: none; }
+        .ui-hidden .ui-top-bar, .ui-hidden .ui-bottom-controls { display: none !important; opacity: 0; pointer-events: none !important; }
         
-        .ui-top-bar { padding: 15px; padding-top: max(15px, env(safe-area-inset-top)); display: flex; justify-content: space-between; pointer-events: auto; z-index: 10; transition: opacity 0.3s; }
+        .ui-top-bar { padding: 15px; padding-top: max(15px, env(safe-area-inset-top)); display: flex; justify-content: space-between; pointer-events: auto; z-index: 10; }
         .ui-top-bar-left, .ui-top-bar-right { display: flex; gap: 10px; }
         
-        .ui-bottom-controls { padding: 10px 15px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: auto; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; box-sizing: border-box; padding-bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10; transition: opacity 0.3s; }
+        .ui-bottom-controls { padding: 10px 15px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: auto; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; box-sizing: border-box; padding-bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10; }
         
-        .btn-icon { background: rgba(40, 40, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s, background 0.3s; pointer-events: auto; padding: 0; margin: 0; }
+        .btn-icon { background: rgba(40, 40, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s; pointer-events: auto; padding: 0; margin: 0; }
         .btn-icon:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.3); }
         .btn-icon.active-mode { background: #3b82f6; border-color: #60a5fa; }
         .btn-icon.exit-mode { background: rgba(220, 38, 38, 0.8); border-color: #f87171; }
         .hidden { display: none !important; }
-        .btn-label { background: #2563eb; color: white; padding: 8px 16px; border-radius: 30px; display: flex; align-items: center; gap: 10px; font-weight: bold; cursor: pointer; transition: transform 0.2s; pointer-events: auto; font-size: 0.9rem; }
+        .btn-label { background: #2563eb; color: white; padding: 8px 16px; border-radius: 30px; display: flex; align-items: center; gap: 10px; font-weight: bold; cursor: pointer; pointer-events: auto; font-size: 0.9rem; }
         .controls-row { display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 40px; flex-wrap: wrap; justify-content: center; }
         
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
@@ -42,22 +41,18 @@
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #4b5563; border-radius: 2px; }
         
         .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; justify-content: center; align-items: center; padding: 20px; pointer-events: auto; box-sizing: border-box; }
-        .modal-content { background: #1f2937; color: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; border: 1px solid #374151; text-align: right; overflow-y: auto; max-height: 80vh; -webkit-overflow-scrolling: touch; }
+        .modal-content { background: #1f2937; color: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; border: 1px solid #374151; text-align: right; overflow-y: auto; max-height: 80vh; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #374151; padding-bottom: 10px; }
         .modal-title { font-size: 1.1rem; font-weight: bold; color: #60a5fa; margin: 0; }
         
-        #temp-reveal-btn { position: absolute; top: max(80px, env(safe-area-inset-top)); right: 20px; z-index: 100; display: none; padding: 12px 25px; background: rgba(37, 99, 235, 0.9); color: white; font-weight: bold; font-size: 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 30px; pointer-events: auto; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        #touch-status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 10px 20px; border-radius: 20px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 20; font-size: 0.9rem; }
+        #temp-reveal-btn { position: absolute; top: max(80px, env(safe-area-inset-top)); right: 20px; z-index: 100; display: none; padding: 12px 25px; background: rgba(37, 99, 235, 0.9); color: white; font-weight: bold; font-size: 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 30px; pointer-events: auto; }
+        #touch-status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 10px 20px; border-radius: 20px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 20; font-size: 0.9rem; }
         
         .radio-group { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
         .radio-item { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
-        .radio-item:hover { background: rgba(255,255,255,0.1); }
         .radio-item input { width: 20px; height: 20px; accent-color: #3b82f6; }
         
-        #custom-ar-btn { position: absolute; bottom: 80px; right: 30px; padding: 12px 30px; border: 1px solid rgba(255,255,255,0.5); border-radius: 25px; background: rgba(0,0,0,0.8); color: white; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: bold; z-index: 50; cursor: pointer; transition: all 0.2s; }
-        #custom-ar-btn:active { transform: scale(0.95); background: rgba(37, 99, 235, 0.8); }
+        #custom-ar-btn { position: absolute; bottom: 80px; right: 30px; padding: 12px 30px; border: 1px solid rgba(255,255,255,0.5); border-radius: 25px; background: rgba(0,0,0,0.8); color: white; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: bold; z-index: 50; cursor: pointer; }
         
         .w-full { width: 100%; } .flex { display: flex; } .items-center { align-items: center; } .gap-3 { gap: 12px; } .text-xs { font-size: 0.75rem; } .text-white { color: white; } .bg-black\/60 { background-color: rgba(0,0,0,0.6); } .rounded-full { border-radius: 9999px; } .p-2 { padding: 0.5rem; } .flex-grow { flex-grow: 1; } .mb-2 { margin-bottom: 0.5rem; } .mb-4 { margin-bottom: 0.5rem; } .justify-end { justify-content: flex-end; } .flex-col { flex-direction: column; } #cube-shape-btn { width: 50px; height: 50px; } #cube-shape-btn svg { width: 26px; height: 26px; }
     </style>
@@ -71,7 +66,6 @@
 
     <div id="ui-layer">
         <div id="touch-layer"></div>
-        
         <button id="temp-reveal-btn">آشکارسازی دکمه‌ها</button>
         
         <div class="ui-top-bar">
@@ -91,7 +85,7 @@
             <div id="dist-container" class="w-full px-8 hidden mb-2">
                 <div class="flex items-center gap-3 w-full bg-black/60 p-2 rounded-full border border-gray-600">
                     <span class="text-xs text-yellow-400 font-bold whitespace-nowrap">فاصله:</span>
-                    <input type="range" id="dist-slider" min="0.5" max="5.0" value="1.0" step="0.1" class="flex-grow">
+                    <input type="range" id="dist-slider" min="0.5" max="5.0" value="1.5" step="0.1" class="flex-grow">
                 </div>
             </div>
 
@@ -163,9 +157,8 @@
                 </div>
                 <div style="padding: 0 5px;">
                     <ul style="list-style-type: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. شروع کار:</strong> برای کارکرد صحیح برنامه مرورگر کروم خود و Google play services for ar را به آخرین نسخه بروزرسانی کنید.</li>
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. بهینه‌سازی:</strong> پخش ویدیو اکنون با هوشمندی فریم‌ها را برای جلوگیری از داغ شدن مدیریت می‌کند و رزولوشن گرافیکی بهینه‌شده است.</li>
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>3. نکات کاربردی:</strong> از تنظیمات آشکار سازی دکمه ها به حالت چهار انگشت تغییر دهید تا امکان اسکرین شات سه انگشتی همزمان داشته باشید.</li>
+                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. شروع کار:</strong> مرورگر کروم و Google Play Services for AR را به آخرین نسخه بروزرسانی کنید.</li>
+                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. حالت فریز AR:</strong> پس از ورود به AR شیء در موقعیت ثابت قرار گرفته و رندرینگ سنگین متوقف می‌شود تا دستگاه داغ نکند.</li>
                     </ul>
                 </div>
             </div>
@@ -178,17 +171,14 @@
         window.history.pushState({ page: 'main' }, ""); window.addEventListener('popstate', () => { window.location.replace(window.location.pathname); });
         
         function hideNonARUI(){ try{ document.getElementById('bg-layer').style.display = 'none'; }catch(e){} }
-        function showNonARUI(){ try{ document.getElementById('bg-layer').style.display = 'block'; }catch(e){} }
-        function formatTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s < 10 ? '0' : ''}${s}`; }
+        function showTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s < 10 ? '0' : ''}${s}`; }
         function showToast(msg) { touchStatus.innerText = msg; touchStatus.style.opacity = '1'; setTimeout(() => { touchStatus.style.opacity = '0'; }, 2500); }
 
-        // --- Custom JS Renderer Variables ---
         let gl, shaderProgram, mainTexture;
         let uMatrix, uSampler;
         let vboPlane, texPlane, vboCube, texCube;
         
-        // Model Transformations
-        let model = { pos: {x:0, y:0, z:-1}, rot: {x:0, y:0, z:0}, scale: {x:1, y:1, z:1} };
+        let model = { pos: {x:0, y:0, z:-1.5}, rot: {x:0, y:0, z:0}, scale: {x:1, y:1, z:1} };
         let aspectScale = { x:1, y:1 };
         let currentOriginalWidth = 1, currentOriginalHeight = 1;
 
@@ -203,16 +193,14 @@
         
         let arInitFrames = 0; let needsArReposition = false; let currentObjectUrl = null; let isStartingAR = false; let fileHasBeenLoaded = false; 
         
-        // --- GPU Optimizations Flags & Freeze State ---
-        let imageUploaded = false;
-        let lastVideoTime = -1;
-        let segmentationUpdated = false;
-        let arFreezeState = false; // غیرفعال کردن تمامی پردازش‌ها و محاسبات پس از قرارگیری شیء در AR
+        // کنترل بهینه‌سازی و فریز
+        let textureUploaded = false;
+        let cachedStaticMVP = null;
+        let arRenderRendered = false;
 
         const PROCESS_INTERVAL = 66; 
         const TARGET_RESOLUTION = 480; 
 
-        // UI Elements
         const uiLayer = document.getElementById('ui-layer'), fileInput = document.getElementById('file-input'), fileLabel = document.getElementById('file-label'), controlsPanel = document.getElementById('controls-panel'), cleanViewBtn = document.getElementById('clean-view-btn'), fullscreenBtn = document.getElementById('fullscreen-btn'), distContainer = document.getElementById('dist-container'), seekContainer = document.getElementById('seek-container'), playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), seekBar = document.getElementById('seek-bar'), currentTimeEl = document.getElementById('current-time'), durationTimeEl = document.getElementById('duration-time'), touchStatus = document.getElementById('touch-status'), distSlider = document.getElementById('dist-slider'), tempRevealBtn = document.getElementById('temp-reveal-btn'), settingsBtn = document.getElementById('settings-btn'), settingsModal = document.getElementById('settings-modal'), helpModal = document.getElementById('help-modal'), removeBgBtn = document.getElementById('remove-bg-btn'), customArBtn = document.getElementById('custom-ar-btn'), exitBtn = document.getElementById('exit-btn'), aboutBtn = document.getElementById('about-btn'), aboutModal = document.getElementById('about-modal'), cubeShapeBtn = document.getElementById('cube-shape-btn'), touchLayer = document.getElementById('touch-layer');
 
         init(); 
@@ -224,19 +212,17 @@
             requestAnimationFrame(fallbackRender);
         }
         
-        // --- Custom JS WebGL Engine ---
         function initWebGL() {
             const container = document.getElementById('ar-container');
             const canvas = document.createElement('canvas');
             canvas.style.width = '100%'; canvas.style.height = '100%'; canvas.style.display = 'block';
             container.appendChild(canvas);
             
-            // درخواست پروفایل مصرف پایین برای جلوگیری از داغ شدن
-            const glOptions = { alpha: true, antialias: false, powerPreference: "low-power" };
+            const glOptions = { alpha: true, antialias: false, powerPreference: "low-power", preserveDrawingBuffer: true };
             gl = canvas.getContext('webgl2', glOptions) || canvas.getContext('webgl', glOptions);
             if (!gl) { showToast("مرورگر شما از WebGL پشتیبانی نمی‌کند"); return; }
             
-            const vsSource = `attribute vec4 pos; attribute vec2 uv; uniform mat4 mvp; void main() { gl_Position = mvp * pos; v_uv = uv; }`;
+            const vsSource = `attribute vec4 pos; attribute vec2 uv; uniform mat4 mvp; varying vec2 v_uv; void main() { gl_Position = mvp * pos; v_uv = uv; }`;
             const fsSource = `precision mediump float; varying vec2 v_uv; uniform sampler2D tex; void main() { vec4 c = texture2D(tex, v_uv); gl_FragColor = c; }`;
             
             const vs = gl.createShader(gl.VERTEX_SHADER); gl.shaderSource(vs, vsSource); gl.compileShader(vs);
@@ -270,7 +256,7 @@
             
             mainTexture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, mainTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,0]));
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -280,45 +266,26 @@
             const f = 1.0 / Math.tan(fovY * Math.PI / 360.0);
             const nf = 1 / (near - far);
             return new DOMMatrix([
-                f / aspect, 0, 0, 0,  0, f, 0, 0,  0, 0, (far + near) * nf, -1,  0, 0, (2 * far * near) * nf, 0
+                f / aspect, 0, 0, 0,  
+                0, f, 0, 0,  
+                0, 0, (far + near) * nf, -1,  
+                0, 0, (2 * far * near) * nf, 0
             ]);
         }
-        
-        // --- بهینه‌سازی شدید در آپدیت تکسچر ---
-        function updateGLTexture() {
-            if (arFreezeState) return; // توقف کامل پردازش در حالت فریز AR
+
+        function uploadTexture() {
             if (!fileHasBeenLoaded) return;
-            let source = isBgRemovalActive ? segmentationCanvas : (currentVideo || currentImage);
+            let source = isBgRemovalActive ? segmentationCanvas : (currentImage || currentVideo);
             if (!source) return;
 
-            // حالت بکگراند حذف شده
-            if (isBgRemovalActive) {
-                if (segmentationUpdated) {
-                    gl.bindTexture(gl.TEXTURE_2D, mainTexture);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-                    segmentationUpdated = false;
-                }
-                return;
-            }
-
-            // حالت عکس (فقط یکبار لود شود)
-            if (source === currentImage) {
-                if (!imageUploaded) {
-                    gl.bindTexture(gl.TEXTURE_2D, mainTexture);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-                    imageUploaded = true;
-                }
-                return;
-            }
-
-            // حالت ویدیو (فقط اگر فریم ویدیو جلو رفته باشد لود شود)
-            if (source === currentVideo) {
-                if (source.readyState >= 2 && source.currentTime !== lastVideoTime) {
-                    gl.bindTexture(gl.TEXTURE_2D, mainTexture);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-                    lastVideoTime = source.currentTime;
-                }
-                return;
+            gl.bindTexture(gl.TEXTURE_2D, mainTexture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+            textureUploaded = true;
+            
+            // متوقف کردن کامل ویدیو پس از ثبت تکسچر
+            if (currentVideo && !currentVideo.paused) {
+                currentVideo.pause();
             }
         }
         
@@ -330,18 +297,23 @@
             if (isCubeMode) gl.enable(gl.DEPTH_TEST);
             else gl.disable(gl.DEPTH_TEST);
             
-            let m = new DOMMatrix(projViewMatrix);
-            m.translateSelf(model.pos.x, model.pos.y, model.pos.z);
-            m.rotateSelf(model.rot.x, model.rot.y, model.rot.z);
-            
-            let aspectW = aspectScale.x * model.scale.x;
-            let aspectH = aspectScale.y * model.scale.y;
-            
-            if (isCubeMode) {
-                let depth = Math.min(aspectW, aspectH);
-                m.scaleSelf(aspectW, aspectH, depth);
+            let m;
+            if (cachedStaticMVP) {
+                m = cachedStaticMVP;
             } else {
-                m.scaleSelf(aspectW, aspectH, 1);
+                m = new DOMMatrix(projViewMatrix);
+                m.translateSelf(model.pos.x, model.pos.y, model.pos.z);
+                m.rotateSelf(model.rot.x, model.rot.y, model.rot.z);
+                
+                let aspectW = aspectScale.x * model.scale.x;
+                let aspectH = aspectScale.y * model.scale.y;
+                
+                if (isCubeMode) {
+                    let depth = Math.min(aspectW, aspectH);
+                    m.scaleSelf(aspectW, aspectH, depth);
+                } else {
+                    m.scaleSelf(aspectW, aspectH, 1);
+                }
             }
             
             gl.uniformMatrix4fv(uMatrix, false, m.toFloat32Array());
@@ -355,7 +327,9 @@
             gl.bindBuffer(gl.ARRAY_BUFFER, isCubeMode ? texCube : texPlane);
             gl.vertexAttribPointer(aTex, 2, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(aTex);
             
-            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, mainTexture); gl.uniform1i(uSampler, 0);
+            gl.activeTexture(gl.TEXTURE0); 
+            gl.bindTexture(gl.TEXTURE_2D, mainTexture); 
+            gl.uniform1i(uSampler, 0);
             
             gl.drawArrays(gl.TRIANGLES, 0, isCubeMode ? 36 : 6);
         }
@@ -363,30 +337,24 @@
         function onXRFrame(time, frame) {
             let session = frame.session;
             
-            // اگر در حالت غیرفعال‌سازی پردازش برای صفر کردن مصرف هستیم
-            if (arFreezeState) {
-                session.requestAnimationFrame(onXRFrame);
+            // اگر یکبار رندر تثبیت شد، رندرینگ XR را برای صفر شدن مصرف کاملاً فریز کن
+            if (arRenderRendered) {
                 return; 
             }
 
             session.requestAnimationFrame(onXRFrame);
-            updateGLTexture();
             
             let pose = frame.getViewerPose(xrRefSpace);
             if (pose) {
+                if (!textureUploaded) {
+                    uploadTexture();
+                }
+
                 if (needsArReposition) {
                     arInitFrames++;
-                    if (arInitFrames > 10) { 
+                    if (arInitFrames > 5) { 
                         repositionObjectInFrontOfCamera(pose); 
                         needsArReposition = false; 
-                        
-                        // غیرفعال کردن تمامی محاسبات و پردازش‌ها بلافاصله پس از جاگیری شیء در محیط AR
-                        if (fileHasBeenLoaded) {
-                            arFreezeState = true;
-                            if (currentVideo && !currentVideo.paused) {
-                                currentVideo.pause();
-                            }
-                        }
                     }
                 }
                 
@@ -403,6 +371,11 @@
                     let projMat = new DOMMatrix(view.projectionMatrix);
                     drawScene(projMat.multiply(viewMat).toFloat32Array());
                 }
+
+                // ثبت شدن رندر اولیه و فعال شدن فریز کامل برای کاهش دما
+                if (!needsArReposition && arInitFrames > 5 && textureUploaded) {
+                    arRenderRendered = true;
+                }
             }
         }
         
@@ -415,14 +388,18 @@
                 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             }
             
-            updateGLTexture();
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.viewport(0, 0, canvas.width, canvas.height);
             gl.clearColor(0,0,0,0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             
             if (!fileHasBeenLoaded) return;
-            let projMat = getPerspectiveMatrix(70, canvas.width/canvas.height, 0.01, 20);
+            
+            if (!textureUploaded) {
+                uploadTexture();
+            }
+
+            let projMat = getPerspectiveMatrix(60, canvas.width/canvas.height, 0.1, 100);
             let viewMat = new DOMMatrix();
             drawScene(projMat.multiply(viewMat).toFloat32Array());
         }
@@ -439,7 +416,8 @@
             model.pos.x = camX + fwdX * dist;
             model.pos.y = camY; 
             model.pos.z = camZ + fwdZ * dist;
-            model.rot.z = 0; initialRotationZ = 0; 
+            model.rot.z = 0;
+            cachedStaticMVP = null;
         }
 
         function setupUIListeners() {
@@ -453,20 +431,42 @@
             document.querySelectorAll('input[name="reveal-mode"]').forEach(radio => radio.addEventListener('change', (e) => revealMode = e.target.value));
             document.getElementById('help-btn').addEventListener('click', () => helpModal.style.display = 'flex'); document.getElementById('close-help-btn').addEventListener('click', () => helpModal.style.display = 'none');
             fullscreenBtn.addEventListener('click', () => { if (currentSession) return; if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); });
-            playBtn.addEventListener('click', () => { if (currentVideo) { if (currentVideo.paused) { currentVideo.play(); playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); } else { currentVideo.pause(); playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); } } });
-            seekBar.addEventListener('input', () => { if (currentVideo) currentVideo.currentTime = seekBar.value; });
+            
+            playBtn.addEventListener('click', () => { 
+                if (currentVideo) { 
+                    if (currentVideo.paused) { 
+                        currentVideo.play(); 
+                        playIcon.classList.add('hidden'); 
+                        pauseIcon.classList.remove('hidden'); 
+                        textureUploaded = false; 
+                    } else { 
+                        currentVideo.pause(); 
+                        playIcon.classList.remove('hidden'); 
+                        pauseIcon.classList.add('hidden'); 
+                    } 
+                } 
+            });
+            
+            seekBar.addEventListener('input', () => { 
+                if (currentVideo) {
+                    currentVideo.currentTime = seekBar.value; 
+                    textureUploaded = false; 
+                }
+            });
             
             distSlider.addEventListener('input', (e) => { 
-                arFreezeState = false;
+                cachedStaticMVP = null;
+                arRenderRendered = false;
                 if (currentSession && xrRefSpace) { needsArReposition = true; arInitFrames = 0; } 
                 else { model.pos.z = -parseFloat(e.target.value); } 
             });
             
             document.getElementById('reset-btn').addEventListener('click', () => { 
-                arFreezeState = false;
-                distSlider.value = 1.0;
+                cachedStaticMVP = null;
+                arRenderRendered = false;
+                distSlider.value = 1.5;
                 if (currentSession) { needsArReposition = true; arInitFrames = 0; }
-                else { model.pos.set = {x:0, y:0, z:-1.0}; }
+                else { model.pos = {x:0, y:0, z:-1.5}; }
                 model.rot = {x:0, y:0, z:0}; model.scale = {x:1, y:1, z:1};
                 isStretchMode = false; is3DMode = false; isAspectFlipped = false;
                 document.getElementById('stretch-btn').classList.remove('active-mode'); document.getElementById('mode-3d-btn').classList.remove('active-mode'); document.getElementById('horiz-vert-btn').classList.remove('active-mode'); 
@@ -476,11 +476,12 @@
             cubeShapeBtn.addEventListener('click', () => { 
                 if (!fileHasBeenLoaded) return; 
                 isCubeMode = !isCubeMode; cubeShapeBtn.classList.toggle('active-mode', isCubeMode); 
+                cachedStaticMVP = null; arRenderRendered = false;
                 showToast(isCubeMode ? "حالت مکعب سه بعدی" : "حالت تخت"); 
             });
             
             document.getElementById('mode-3d-btn').addEventListener('click', function() { is3DMode = !is3DMode; this.classList.toggle('active-mode', is3DMode); showToast(is3DMode ? "چرخش ۳ بعدی" : "حالت جابجایی"); });
-            document.getElementById('rotate-btn').addEventListener('click', () => { if (fileHasBeenLoaded) { model.rot.z -= 90; } });
+            document.getElementById('rotate-btn').addEventListener('click', () => { if (fileHasBeenLoaded) { model.rot.z -= 90; cachedStaticMVP = null; arRenderRendered = false; } });
             
             document.getElementById('horiz-vert-btn').addEventListener('click', function() { 
                 if (!fileHasBeenLoaded) return; 
@@ -489,6 +490,7 @@
                 const targetAspect = 2 / 3; 
                 if (isAspectFlipped) { model.scale.x = model.scale.y * (targetAspect / aspect); showToast("نسبت ۲:۳ (عمودی)"); } 
                 else { model.scale.x = model.scale.y; showToast("نسبت اصلی (افقی)"); } 
+                cachedStaticMVP = null; arRenderRendered = false;
             });
             
             document.getElementById('stretch-btn').addEventListener('click', function() { isStretchMode = !isStretchMode; this.classList.toggle('active-mode', isStretchMode); showToast(isStretchMode ? "تغییر سایز آزاد" : "تغییر سایز قفل"); });
@@ -504,13 +506,12 @@
                         const sessionInit = { requiredFeatures: ['local'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.getElementById('ui-layer') } };
                         const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
                         
-                        // بهینه‌سازی رزولوشن برای جلوگیری از داغ شدن: framebufferScaleFactor: 0.6
-                        session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl, { antialias: false, framebufferScaleFactor: 0.6 }) });
+                        session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl, { antialias: false, framebufferScaleFactor: 0.5 }) });
                         
                         xrRefSpace = await session.requestReferenceSpace('local');
                         currentSession = session; hideNonARUI(); 
                         customArBtn.style.display = 'none'; fullscreenBtn.style.display = 'none'; exitBtn.style.display = 'none';
-                        showToast("حالت AR فعال شد"); needsArReposition = true; arInitFrames = 0; 
+                        showToast("حالت AR فعال شد"); needsArReposition = true; arInitFrames = 0; textureUploaded = false; arRenderRendered = false;
                         session.addEventListener('end', () => { window.location.replace(window.location.pathname); });
                         session.requestAnimationFrame(onXRFrame);
                     } catch (e) { showToast("خطا در اجرای AR"); isStartingAR = false; }
@@ -519,13 +520,11 @@
         }
 
         function clearCurrentObject() {
-            arFreezeState = false;
             if (currentVideo) { currentVideo.pause(); currentVideo.removeAttribute('src'); currentVideo.load(); currentVideo = null; }
-            currentImage = null;
-            imageUploaded = false; lastVideoTime = -1; segmentationUpdated = false;
+            currentImage = null; textureUploaded = false; cachedStaticMVP = null; arRenderRendered = false;
             isProcessing = false; isBgRemovalActive = false; fileHasBeenLoaded = false;
             gl.bindTexture(gl.TEXTURE_2D, mainTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,0]));
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
         }
 
         async function toggleBgRemoval() {
@@ -549,7 +548,7 @@
                 let scaleFactor = 1; if (w > TARGET_RESOLUTION) { scaleFactor = TARGET_RESOLUTION / w; w = TARGET_RESOLUTION; h = Math.floor(h * scaleFactor); }
                 segmentationCanvas.width = w; segmentationCanvas.height = h;
                 if (currentVideo) processVideoFrame(); else if (currentImage) await selfieSegmentation.send({image: currentImage});
-            } else { showToast("حذف پس‌زمینه خاموش"); }
+            } else { showToast("حذف پس‌زمینه خاموش"); textureUploaded = false; }
         }
 
         function onSegmentationResults(results) { 
@@ -560,12 +559,11 @@
             segmentationCtx.globalCompositeOperation = 'source-in'; 
             segmentationCtx.drawImage(results.image, 0, 0, segmentationCanvas.width, segmentationCanvas.height); 
             segmentationCtx.restore(); 
-            segmentationUpdated = true; // علامت‌گذاری برای آپدیت GPU
+            textureUploaded = false;
             isProcessing = false; 
         }
         
         async function processVideoFrame() { 
-            if (arFreezeState) return;
             if (!(isBgRemovalActive && currentVideo && !currentVideo.paused && !currentVideo.ended)) return; 
             const now = performance.now(); 
             if (!isProcessing && (now - lastProcessTime > PROCESS_INTERVAL)) { 
@@ -582,7 +580,7 @@
             const file = event.target.files[0]; if (!file) return; 
             clearCurrentObject(); fileLabel.querySelector('span').innerText = "تغییر فایل (ریستارت)";
             if (currentObjectUrl) { URL.revokeObjectURL(currentObjectUrl); currentObjectUrl = null; }
-            distSlider.value = 1.0; isStretchMode = false; is3DMode = false; isAspectFlipped = false;
+            distSlider.value = 1.5; isStretchMode = false; is3DMode = false; isAspectFlipped = false;
             document.getElementById('stretch-btn').classList.remove('active-mode'); document.getElementById('mode-3d-btn').classList.remove('active-mode'); document.getElementById('horiz-vert-btn').classList.remove('active-mode');
             
             currentObjectUrl = URL.createObjectURL(file); const url = currentObjectUrl; const fileType = file.type.split('/')[0];
@@ -597,32 +595,32 @@
         function processMediaReady(w, h) {
             const ratio = w / h;
             aspectScale.y = 1.0;
-            aspectScale.x = 1.0 * ratio;
+            aspectScale.x = ratio;
             currentOriginalWidth = aspectScale.x; currentOriginalHeight = aspectScale.y;
             model.pos = {x:0, y:0, z: -parseFloat(distSlider.value)};
             model.rot = {x:0, y:0, z:0}; model.scale = {x:1, y:1, z:1};
-            if(currentSession) { needsArReposition = true; arInitFrames = 0; }
             fileHasBeenLoaded = true;
-            showToast("فایل با موفقیت و بهینه بارگذاری شد"); 
+            textureUploaded = false;
+            cachedStaticMVP = null;
+            if(currentSession) { needsArReposition = true; arInitFrames = 0; arRenderRendered = false; }
+            showToast("فایل بارگذاری شد"); 
         }
 
         function processImage(url) { 
             const img = new Image();
-            img.onload = () => { currentImage = img; imageUploaded = false; processMediaReady(img.width, img.height); };
+            img.onload = () => { currentImage = img; processMediaReady(img.width, img.height); };
             img.src = url;
         }
         
         function processVideo(url) { 
             const video = document.createElement('video'); video.src = url; video.crossOrigin = 'anonymous'; video.loop = true; video.playsInline = true; video.preload = 'auto'; video.muted = false; 
             video.addEventListener('loadedmetadata', () => { 
-                seekBar.max = video.duration; durationTimeEl.innerText = formatTime(video.duration); 
-                currentVideo = video; lastVideoTime = -1; processMediaReady(video.videoWidth, video.videoHeight);
+                seekBar.max = video.duration; durationTimeEl.innerText = showTime(video.duration); 
+                currentVideo = video; processMediaReady(video.videoWidth, video.videoHeight);
             }); 
-            let lastUITime = 0;
             video.addEventListener('timeupdate', () => { 
-                if (uiHidden || arFreezeState) return; 
-                const now = performance.now();
-                if (now - lastUITime > 250) { seekBar.value = video.currentTime; currentTimeEl.innerText = formatTime(video.currentTime); lastUITime = now; }
+                if (uiHidden) return; 
+                seekBar.value = video.currentTime; currentTimeEl.innerText = showTime(video.currentTime);
             }); 
             const playPromise = video.play(); if (playPromise !== undefined) playPromise.catch(error => { playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); }); 
         }
@@ -641,6 +639,7 @@
             
             touchLayer.addEventListener('touchmove', (e) => {
                 e.preventDefault(); if (!fileHasBeenLoaded) return;
+                cachedStaticMVP = null; arRenderRendered = false;
                 if (e.touches.length === 1 && isDragging) { 
                     const deltaX = e.touches[0].clientX - previousMousePosition.x; const deltaY = e.touches[0].clientY - previousMousePosition.y; 
                     if (is3DMode) { model.rot.y += deltaX * 0.5; model.rot.x += deltaY * 0.5; } 
