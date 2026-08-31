@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>AR Gallery - Ultra Optimized PWA</title>
+    <title>AR Gallery - Fixed & Ultra Optimized</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     
@@ -181,13 +181,11 @@
             });
         }
         
-        // توابع کمکی
         function hideNonARUI(){ try{ document.getElementById('bg-layer').style.display = 'none'; }catch(e){} }
         function showNonARUI(){ try{ document.getElementById('bg-layer').style.display = 'block'; }catch(e){} }
         function formatTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s < 10 ? '0' : ''}${s}`; }
         function showToast(msg) { touchStatus.innerText = msg; touchStatus.style.opacity = '1'; setTimeout(() => { touchStatus.style.opacity = '0'; }, 2500); }
 
-        // برادرهای ثابت جهت جلوگیری از تخصیص حافظه مکرر (بهینه‌سازی داغ شدن CPU)
         const _screenPinchDir = new THREE.Vector3(); 
         const _tempQuat = new THREE.Quaternion(); 
         const _axisQuaternion = new THREE.Quaternion(); 
@@ -212,12 +210,6 @@
         let currentObjectUrl = null; let isStartingAR = false; 
         let fileHasBeenLoaded = false; 
 
-        // نرخ ۳۰ فریم برای قفل FPS و کنترل حرارت
-        let lastRenderTime = 0;
-        const TARGET_FPS = 30;
-        const FRAME_INTERVAL = 1000 / TARGET_FPS;
-
-        // افزایش فاصله پردازش هوش مصنوعی به ۷۰ میلی‌ثانیه برای جلوگیری از داغ شدن پردازنده
         const PROCESS_INTERVAL = 70; 
         const TARGET_RESOLUTION = 480; 
 
@@ -234,7 +226,7 @@
             renderer = new THREE.WebGLRenderer({ 
                 antialias: false, 
                 alpha: true, 
-                powerPreference: "low-power",
+                powerPreference: "high-performance",
                 precision: "mediump", 
                 depth: true, 
                 stencil: false, 
@@ -256,9 +248,6 @@
             renderer.xr.enabled = true; 
             renderer.xr.setReferenceSpaceType('local');
             
-            // بهینه‌سازی بار GPU در حالت AR
-            try { renderer.xr.setFramebufferScaleFactor(0.6); } catch (e) { } 
-            
             container.appendChild(renderer.domElement);
             renderer.setAnimationLoop(render);
 
@@ -276,7 +265,6 @@
                         showToast("حالت AR فعال شد");
                         needsArReposition = true; arInitFrames = 0; 
 
-                        // بازگرداندن رفتار قبلی: خروج از AR با ریفرش کامل صفحه جهت پاک‌سازی حافظه PWA
                         session.addEventListener('end', () => {
                             currentSession = null;
                             window.location.reload();
@@ -298,12 +286,6 @@
         }
 
         function render(timestamp, frame) { 
-            // قفل FPS روی ۳۰ فریم برای جلوگیری از داغ شدن پردازنده و کارت گرافیک
-            if (timestamp && (timestamp - lastRenderTime < FRAME_INTERVAL)) {
-                return;
-            }
-            lastRenderTime = timestamp;
-
             if (renderer.xr.isPresenting) {
                 if (!frame) return;
                 if (needsArReposition) { arInitFrames++; if (arInitFrames > 10) { repositionObjectInFrontOfCamera(); needsArReposition = false; } }
@@ -390,6 +372,8 @@
                         currentMesh.material.side = THREE.DoubleSide; 
                         currentMesh.material.depthTest = true; 
                         currentMesh.material.depthWrite = true; 
+                        currentMesh.material.polygonOffset = true;
+                        currentMesh.material.polygonOffsetFactor = -1;
                         currentMesh.material.needsUpdate = true; 
                     } 
                     showToast("حالت مکعب سه بعدی"); 
@@ -399,6 +383,8 @@
                         currentMesh.material.transparent = isBgRemovalActive; 
                         currentMesh.material.depthTest = true; 
                         currentMesh.material.depthWrite = true; 
+                        currentMesh.material.polygonOffset = true;
+                        currentMesh.material.polygonOffsetFactor = -1;
                         currentMesh.material.needsUpdate = true; 
                     } 
                     showToast("حالت تخت"); 
@@ -601,7 +587,15 @@
             const aspectRatio = width / height; const displayHeight = 1.0; const displayWidth = displayHeight * aspectRatio; currentOriginalWidth = displayWidth; currentOriginalHeight = displayHeight; 
             
             const geometry = new THREE.PlaneGeometry(displayWidth, displayHeight, 1, 1); 
-            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: false, depthTest: true, depthWrite: true }); 
+            const material = new THREE.MeshBasicMaterial({ 
+                map: texture, 
+                side: THREE.DoubleSide, 
+                transparent: false, 
+                depthTest: true, 
+                depthWrite: true,
+                polygonOffset: true,
+                polygonOffsetFactor: -1
+            }); 
             
             currentMesh = new THREE.Mesh(geometry, material); 
             currentMesh.name = 'contentMesh'; 
@@ -641,7 +635,6 @@
                     const deltaX = e.touches[0].clientX - previousMousePosition.x; 
                     const deltaY = e.touches[0].clientY - previousMousePosition.y; 
                     if (is3DMode) { 
-                        // استفاده از برادرهای ثابت برای جلوگیری از داغ شدن پردازنده
                         currentMesh.rotateOnWorldAxis(_worldY, deltaX * 0.005); 
                         currentMesh.rotateOnWorldAxis(_worldX, deltaY * 0.005); 
                     } else { 
