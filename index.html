@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>AR Gallery - Fully Fixed & Optimized</title>
+    <title>AR Gallery - Cool & Optimized AR</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     
@@ -144,7 +144,7 @@
                     <button id="close-about-btn" style="background:none; border:none; color:white; font-size:1.5rem; position: absolute; left: 0; cursor:pointer;">&times;</button>
                 </div>
                 <div style="padding: 20px 0;">
-                    <p style="font-size: 1rem;">سامانه نمایش واقعیت افزوده بهینه‌شده</p>
+                    <p style="font-size: 1rem;">سامانه نمایش واقعیت افزوده خنک و بهینه‌شده</p>
                 </div>
             </div>
         </div>
@@ -157,8 +157,8 @@
                 </div>
                 <div style="padding: 0 5px;">
                     <ul style="list-style-type: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. عملکرد روان:</strong> سیستم رندر تصویر بهینه شده تا نرخ فریم ثابت بدون چشمک زدن ارائه دهد.</li>
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. کنترل حرارت:</strong> فقط زمانی که حذف پس‌زمینه را روشن کنید پردازنده درگیر می‌شود.</li>
+                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. کنترل کامل حرارت:</strong> بار گرافیکی رندر به حداقل ممکن کاهش یافته است.</li>
+                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. کیفیت و سرعت:</strong> بدون پرپری با بهینه‌ترین حالت مصرف انرژی.</li>
                     </ul>
                 </div>
             </div>
@@ -213,11 +213,11 @@
             scene = new THREE.Scene(); 
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
             
-            // تنظیمات رندرر کاملاً بدون چشمک زدن و کاملاً پایدار
+            // تنظیمات رندرر کاملاً خنک و بهینه‌شده برای جلوگیری از داغ شدن GPU
             renderer = new THREE.WebGLRenderer({ 
-                antialias: true, 
+                antialias: false, // غیرفعال کردن آنتی‌الیاسینگ سنگین برای کاهش فاحش بار GPU
                 alpha: true, 
-                powerPreference: "high-performance",
+                powerPreference: "low-power", // درخواست حالت کم‌مصرف از سیستم‌عامل
                 precision: "mediump",
                 depth: true, 
                 stencil: false, 
@@ -225,7 +225,8 @@
             });
             
             renderer.setClearColor(0x000000, 0); 
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); 
+            // محدود کردن تراکم پیکسل به حداکثر 1.0 جهت جلوگیری از رندر با رزولوشن فوق‌العاده بالا روی گوشی
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0)); 
             renderer.setSize(window.innerWidth, window.innerHeight); 
             
             renderer.outputColorSpace = THREE.SRGBColorSpace; 
@@ -270,7 +271,6 @@
         }
 
         function render(timestamp, frame) { 
-            // حذف کامل شرط قفل FPS برای جلوگیری از چشمک زدن تصویر در WebXR
             if (renderer.xr.isPresenting) {
                 if (!frame) return;
                 if (needsArReposition) { 
@@ -365,6 +365,7 @@
                     const depth = Math.min(currentOriginalWidth, currentOriginalHeight) * 0.5; 
                     currentMesh.geometry = new THREE.BoxGeometry(currentOriginalWidth, currentOriginalHeight, depth); 
                     if(currentMesh.material) { 
+                        currentMesh.material.side = THREE.DoubleSide;
                         currentMesh.material.transparent = isBgRemovalActive; 
                         currentMesh.material.depthWrite = !isBgRemovalActive;
                         currentMesh.material.needsUpdate = true; 
@@ -373,6 +374,7 @@
                 } else { 
                     currentMesh.geometry = new THREE.PlaneGeometry(currentOriginalWidth, currentOriginalHeight, 1, 1); 
                     if(currentMesh.material) { 
+                        currentMesh.material.side = THREE.FrontSide;
                         currentMesh.material.transparent = isBgRemovalActive; 
                         currentMesh.material.depthWrite = !isBgRemovalActive;
                         currentMesh.material.needsUpdate = true; 
@@ -460,8 +462,12 @@
                 
                 let w = currentVideo ? currentVideo.videoWidth : currentImageTexture.image.width; 
                 let h = currentVideo ? currentVideo.videoHeight : currentImageTexture.image.height;
-                segmentationCanvas.width = w || 512; 
-                segmentationCanvas.height = h || 512;
+                
+                // سبک‌سازی فوق‌العاده Canvas هوش مصنوعی با کاهش ابعاد جهت جلوگیری از داغی
+                const maxDim = 320;
+                const scale = Math.min(1, maxDim / Math.max(w || 512, h || 512));
+                segmentationCanvas.width = Math.round((w || 512) * scale); 
+                segmentationCanvas.height = Math.round((h || 512) * scale);
                 
                 if (processedTexture) { processedTexture.dispose(); }
                 processedTexture = new THREE.CanvasTexture(segmentationCanvas); 
@@ -469,7 +475,7 @@
 
                 currentMesh.material.map = processedTexture; 
                 currentMesh.material.transparent = true; 
-                currentMesh.material.depthWrite = false; // حل کامل چشمک زدن در حالت شفافیت
+                currentMesh.material.depthWrite = false;
                 currentMesh.material.needsUpdate = true;
                 
                 if (currentVideo) processVideoFrame(); 
@@ -501,7 +507,7 @@
         async function processVideoFrame() { 
             if (!(isBgRemovalActive && currentVideo && !currentVideo.paused && !currentVideo.ended)) return; 
             const now = performance.now(); 
-            if (!isProcessing && (now - lastProcessTime > 150)) { 
+            if (!isProcessing && (now - lastProcessTime > 200)) { 
                 isProcessing = true; 
                 lastProcessTime = now; 
                 try { 
@@ -513,7 +519,7 @@
             if('requestVideoFrameCallback' in currentVideo) { 
                 currentVideo.requestVideoFrameCallback(processVideoFrame); 
             } else { 
-                setTimeout(processVideoFrame, 150); 
+                setTimeout(processVideoFrame, 200); 
             } 
         }
 
@@ -613,7 +619,7 @@
             const geometry = new THREE.PlaneGeometry(displayWidth, displayHeight, 1, 1); 
             const material = new THREE.MeshBasicMaterial({ 
                 map: texture, 
-                side: THREE.DoubleSide, 
+                side: THREE.FrontSide, // کاهش رندر اضافی پشت صفحه
                 transparent: false, 
                 depthTest: true, 
                 depthWrite: true 
