@@ -2,7 +2,7 @@
    Service Worker – Bulletproof Offline Fix
    =============================== */
 
-const CACHE_NAME = 'magicplayer-cache-v199999999999999';
+const CACHE_NAME = 'magicplayer-cache-v19999999999999999';
 
 const ASSETS = [
     './',
@@ -12,6 +12,7 @@ const ASSETS = [
     './icon-512.png',
     './css/Vazirmatn-font-face.css',
     './js/three.module.js',
+    './js/OrbitControls.js',
     './js/mediapipe/selfie_segmentation.js',
     './js/mediapipe/selfie_segmentation.binarypb',
     './js/mediapipe/selfie_segmentation_solution_simd_wasm_bin.js',
