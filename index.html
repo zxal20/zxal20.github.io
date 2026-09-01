@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>AR Gallery - Ultra Optimized PWA</title>
+    <title>AR Gallery - Fully Fixed & Optimized</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     
@@ -18,15 +18,14 @@
         #ar-container canvas { display: block; width: 100% !important; height: 100% !important; }
         
         #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; }
-        
         #touch-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; touch-action: none; pointer-events: auto; }
         
-        .ui-hidden .ui-top-bar, .ui-hidden .ui-bottom-controls { display: none !important; opacity: 0; pointer-events: none !important; transition: none; }
+        .ui-hidden .ui-top-bar, .ui-hidden .ui-bottom-controls { display: none !important; opacity: 0; pointer-events: none !important; }
         
-        .ui-top-bar { padding: 15px; padding-top: max(15px, env(safe-area-inset-top)); display: flex; justify-content: space-between; pointer-events: auto; z-index: 10; transition: opacity 0.3s; }
+        .ui-top-bar { padding: 15px; padding-top: max(15px, env(safe-area-inset-top)); display: flex; justify-content: space-between; pointer-events: auto; z-index: 10; }
         .ui-top-bar-left, .ui-top-bar-right { display: flex; gap: 10px; }
         
-        .ui-bottom-controls { padding: 10px 15px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: auto; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; box-sizing: border-box; padding-bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10; transition: opacity 0.3s; }
+        .ui-bottom-controls { padding: 10px 15px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: auto; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; box-sizing: border-box; padding-bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10; }
         
         .btn-icon { background: rgba(40, 40, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s, background 0.3s; pointer-events: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.3); padding: 0; margin: 0; }
         .btn-icon:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.3); }
@@ -45,20 +44,17 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #374151; padding-bottom: 10px; }
         .modal-title { font-size: 1.1rem; font-weight: bold; color: #60a5fa; margin: 0; }
         
-        #temp-reveal-btn { position: absolute; top: max(80px, env(safe-area-inset-top)); right: 20px; z-index: 100; display: none; padding: 12px 25px; background: rgba(37, 99, 235, 0.9); color: white; font-weight: bold; font-size: 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); pointer-events: auto; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        
+        #temp-reveal-btn { position: absolute; top: max(80px, env(safe-area-inset-top)); right: 20px; z-index: 100; display: none; padding: 12px 25px; background: rgba(37, 99, 235, 0.9); color: white; font-weight: bold; font-size: 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); pointer-events: auto; }
         #touch-status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 10px 20px; border-radius: 20px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 20; font-size: 0.9rem; }
         
         .radio-group { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
         .radio-item { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
-        .radio-item:hover { background: rgba(255,255,255,0.1); }
         .radio-item input { width: 20px; height: 20px; accent-color: #3b82f6; }
         
-        #custom-ar-btn { position: absolute; bottom: 80px; right: 30px; padding: 12px 30px; border: 1px solid rgba(255,255,255,0.5); border-radius: 25px; background: rgba(0,0,0,0.7); color: white; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: bold; z-index: 50; cursor: pointer; box-shadow: 0 0 15px rgba(0,0,0,0.5); transition: all 0.2s; }
+        #custom-ar-btn { position: absolute; bottom: 80px; right: 30px; padding: 12px 30px; border: 1px solid rgba(255,255,255,0.5); border-radius: 25px; background: rgba(0,0,0,0.7); color: white; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: bold; z-index: 50; cursor: pointer; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
         #custom-ar-btn:active { transform: scale(0.95); background: rgba(37, 99, 235, 0.8); }
         
-        .w-full { width: 100%; } .flex { display: flex; } .items-center { align-items: center; } .gap-3 { gap: 12px; } .text-xs { font-size: 0.75rem; } .text-white { color: white; } .bg-black\/60 { background-color: rgba(0,0,0,0.6); } .rounded-full { border-radius: 9999px; } .p-2 { padding: 0.5rem; } .flex-grow { flex-grow: 1; } .mb-2 { margin-bottom: 0.5rem; } .mb-4 { margin-bottom: 0.5rem; } .justify-end { justify-content: flex-end; } .flex-col { flex-direction: column; } #cube-shape-btn { width: 50px; height: 50px; } #cube-shape-btn svg { width: 26px; height: 26px; }
+        .w-full { width: 100%; } .flex { display: flex; } .items-center { align-items: center; } .gap-3 { gap: 12px; } .text-xs { font-size: 0.75rem; } .text-white { color: white; } .bg-black\/60 { background-color: rgba(0,0,0,0.6); } .rounded-full { border-radius: 9999px; } .p-2 { padding: 0.5rem; } .flex-grow { flex-grow: 1; } .mb-2 { margin-bottom: 0.5rem; } .mb-4 { margin-bottom: 0.5rem; } .justify-end { justify-content: flex-end; } .flex-col { flex-direction: column; } #cube-shape-btn { width: 50px; height: 50px; }
     </style>
 </head>
 <body id="app-body">
@@ -66,7 +62,7 @@
     <div id="bg-layer"></div>
     <div id="ar-container"></div>
     <div id="touch-status">وضعیت</div>
-    <button id="custom-ar-btn">ورود به AR (حالت بهینه)</button>
+    <button id="custom-ar-btn">ورود به AR</button>
 
     <div id="ui-layer">
         <div id="touch-layer"></div>
@@ -148,7 +144,7 @@
                     <button id="close-about-btn" style="background:none; border:none; color:white; font-size:1.5rem; position: absolute; left: 0; cursor:pointer;">&times;</button>
                 </div>
                 <div style="padding: 20px 0;">
-                    <p style="font-size: 1rem;">ساخته شده توسط ابزار فوق العاده</p>
+                    <p style="font-size: 1rem;">سامانه نمایش واقعیت افزوده بهینه‌شده</p>
                 </div>
             </div>
         </div>
@@ -156,14 +152,13 @@
         <div id="help-modal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title">راهنمای کامل</h3>
+                    <h3 class="modal-title">راهنمای کاربردی</h3>
                     <button id="close-help-btn" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
                 </div>
                 <div style="padding: 0 5px;">
                     <ul style="list-style-type: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. شروع کار:</strong> برای کارکرد صحیح برنامه مرورگر کروم خود و Google play services for ar را به آخرین نسخه بروزرسانی کنید و برای بار اول برای دکمه حذف پس زمینه به اینترنت متصل باشید.</li>
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. بهینه‌سازی:</strong> این برنامه کاملاً برای عملکرد خنک در AR بازنویسی شده است. برای حفظ سلامت باتری، پس از ۲۰ دقیقه استفاده ممتد به گوشی استراحت دهید.</li>
-                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>3. نکات کاربردی:</strong> از تنظیمات آشکار سازی دکمه ها به حالت چهار انگشت تغییر دهید تا امکان اسکرین شات سه انگشتی همزمان داشته باشید. با قراردادن دو انگشت همزمان بر روی عکس یا ویدیو می‌توانید آن را جا به جا کنید.</li>
+                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>1. عملکرد روان:</strong> سیستم رندر تصویر بهینه شده تا نرخ فریم ثابت بدون چشمک زدن ارائه دهد.</li>
+                        <li style="margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><strong>2. کنترل حرارت:</strong> فقط زمانی که حذف پس‌زمینه را روشن کنید پردازنده درگیر می‌شود.</li>
                     </ul>
                 </div>
             </div>
@@ -180,8 +175,7 @@
         }
         
         function hideNonARUI(){ try{ document.getElementById('bg-layer').style.display = 'none'; }catch(e){} }
-        function showNonARUI(){ try{ document.getElementById('bg-layer').style.display = 'block'; }catch(e){} }
-        function formatTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s < 10 ? '0' : ''}${s}`; }
+        function showTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s < 10 ? '0' : ''}${s}`; }
         function showToast(msg) { touchStatus.innerText = msg; touchStatus.style.opacity = '1'; setTimeout(() => { touchStatus.style.opacity = '0'; }, 2500); }
 
         const _screenPinchDir = new THREE.Vector3(); 
@@ -202,20 +196,12 @@
         let initialPinchDistance = 0, initialScale = new THREE.Vector3(), initialAngle = 0, initialMidpoint = null, initialMeshPosition = new THREE.Vector3(), gestureType = null;
         let initialQuaternion = new THREE.Quaternion(); let targetLocalAxis = new THREE.Vector3();
         let uiHidden = false, revealMode = 'button', revealTimer = null;
+        
         let selfieSegmentation = null, isBgRemovalActive = false, segmentationCanvas = document.createElement('canvas'), segmentationCtx = segmentationCanvas.getContext('2d', { willReadFrequently: true }), originalTexture = null, processedTexture = null, lastProcessTime = 0, isProcessing = false;
         
         let arInitFrames = 0; let needsArReposition = false; 
         let currentObjectUrl = null; let isStartingAR = false; 
         let fileHasBeenLoaded = false; 
-
-        // کنترل نرخ فریم نرم‌افزاری برای کاهش مصرف توان
-        let lastRenderTime = 0;
-        const TARGET_FPS = 30;
-        const FRAME_INTERVAL = 1000 / TARGET_FPS;
-
-        // تنظیمات بهینه‌شده جهت خنک‌سازی سخت‌افزار
-        const PROCESS_INTERVAL = 200; // کاهش وقفه فریم هوش مصنوعی به 5 بار در ثانیه
-        const TARGET_RESOLUTION = 256; // رزولوشن مناسب برای Selfie Segmentation
 
         const uiLayer = document.getElementById('ui-layer'), fileInput = document.getElementById('file-input'), fileLabel = document.getElementById('file-label'), controlsPanel = document.getElementById('controls-panel'), cleanViewBtn = document.getElementById('clean-view-btn'), fullscreenBtn = document.getElementById('fullscreen-btn'), distContainer = document.getElementById('dist-container'), seekContainer = document.getElementById('seek-container'), playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), seekBar = document.getElementById('seek-bar'), currentTimeEl = document.getElementById('current-time'), durationTimeEl = document.getElementById('duration-time'), touchStatus = document.getElementById('touch-status'), distSlider = document.getElementById('dist-slider'), tempRevealBtn = document.getElementById('temp-reveal-btn'), settingsBtn = document.getElementById('settings-btn'), settingsModal = document.getElementById('settings-modal'), helpModal = document.getElementById('help-modal'), removeBgBtn = document.getElementById('remove-bg-btn'), customArBtn = document.getElementById('custom-ar-btn'), exitBtn = document.getElementById('exit-btn'), aboutBtn = document.getElementById('about-btn'), aboutModal = document.getElementById('about-modal'), cubeShapeBtn = document.getElementById('cube-shape-btn');
         const touchLayer = document.getElementById('touch-layer');
@@ -227,57 +213,35 @@
             scene = new THREE.Scene(); 
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
             
+            // تنظیمات رندرر کاملاً بدون چشمک زدن و کاملاً پایدار
             renderer = new THREE.WebGLRenderer({ 
-                antialias: false, 
+                antialias: true, 
                 alpha: true, 
-                powerPreference: "low-power", // بهینه‌سازی مصرف توان
-                precision: "lowp",             // کاهش دقت شیدرها جهت نجات GPU
+                powerPreference: "high-performance",
+                precision: "mediump",
                 depth: true, 
                 stencil: false, 
-                preserveDrawingBuffer: false, 
-                logarithmicDepthBuffer: false,
-                desynchronized: true
+                preserveDrawingBuffer: false 
             });
             
             renderer.setClearColor(0x000000, 0); 
-            renderer.shadowMap.enabled = false; 
-            renderer.shadowMap.autoUpdate = false;
-            renderer.sortObjects = false; 
-            renderer.toneMapping = THREE.NoToneMapping; 
-            
-            renderer.debug.checkShaderErrors = false; 
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25)); 
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); 
             renderer.setSize(window.innerWidth, window.innerHeight); 
             
             renderer.outputColorSpace = THREE.SRGBColorSpace; 
             renderer.xr.enabled = true; 
             renderer.xr.setReferenceSpaceType('local');
             
-            // تعیین ضریب وضوح AR در محدوده بهینه 0.50 برای توازن کیفیت و دما
-            try { renderer.xr.setFramebufferScaleFactor(0.50); } catch (e) { } 
-            
             container.appendChild(renderer.domElement);
             renderer.setAnimationLoop(render);
 
             customArBtn.addEventListener('click', async () => {
-                if (!currentMesh) { showToast("لطفا ابتدا فایل را انتخاب کنید"); return; }
+                if (!currentMesh) { showToast("لطفاً ابتدا فایل را انتخاب کنید"); return; }
                 if (currentSession === null && !isStartingAR) {
                     isStartingAR = true;
                     const sessionInit = { requiredFeatures: ['local'], optionalFeatures: ['dom-overlay'], domOverlay: { root: document.getElementById('ui-layer') } };
                     try {
                         const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
-                        
-                        // قفل کردن سخت‌افزار دوربین روی 30FPS در صورت پشتیبانی مرورگر
-                        if (session.supportedFrameRates) {
-                            const rates = Array.from(session.supportedFrameRates);
-                            if (rates.includes(30)) {
-                                try {
-                                    await session.updateTargetFrameRate(30);
-                                    console.log("AR Hardware Camera Locked to 30 FPS");
-                                } catch(err) {}
-                            }
-                        }
-
                         await renderer.xr.setSession(session); 
                         currentSession = session;
                         hideNonARUI(); 
@@ -306,15 +270,16 @@
         }
 
         function render(timestamp, frame) { 
-            // محدودیت FPS نرم‌افزاری در صورت نرسیدن به حد مشخص
-            if (timestamp && (timestamp - lastRenderTime < FRAME_INTERVAL)) {
-                return;
-            }
-            lastRenderTime = timestamp;
-
+            // حذف کامل شرط قفل FPS برای جلوگیری از چشمک زدن تصویر در WebXR
             if (renderer.xr.isPresenting) {
                 if (!frame) return;
-                if (needsArReposition) { arInitFrames++; if (arInitFrames > 10) { repositionObjectInFrontOfCamera(); needsArReposition = false; } }
+                if (needsArReposition) { 
+                    arInitFrames++; 
+                    if (arInitFrames > 10) { 
+                        repositionObjectInFrontOfCamera(); 
+                        needsArReposition = false; 
+                    } 
+                }
             }
             renderer.render(scene, camera); 
         }
@@ -328,11 +293,7 @@
 
         function setupUIListeners() {
             exitBtn.addEventListener('click', () => { 
-                if (currentSession) {
-                    currentSession.end();
-                } else {
-                    window.location.reload();
-                }
+                if (currentSession) { currentSession.end(); } else { window.location.reload(); }
             });
 
             aboutBtn.addEventListener('click', () => aboutModal.style.display = 'flex'); 
@@ -361,7 +322,17 @@
             document.getElementById('help-btn').addEventListener('click', () => helpModal.style.display = 'flex'); 
             document.getElementById('close-help-btn').addEventListener('click', () => helpModal.style.display = 'none');
             fullscreenBtn.addEventListener('click', () => { if (renderer.xr.isPresenting) return; if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); });
-            playBtn.addEventListener('click', () => { if (currentVideo) { if (currentVideo.paused) { currentVideo.play(); playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); } else { currentVideo.pause(); playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); } } });
+            
+            playBtn.addEventListener('click', () => { 
+                if (currentVideo) { 
+                    if (currentVideo.paused) { 
+                        currentVideo.play(); playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); 
+                    } else { 
+                        currentVideo.pause(); playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); 
+                    } 
+                } 
+            });
+            
             seekBar.addEventListener('input', () => { if (currentVideo) currentVideo.currentTime = seekBar.value; });
             distSlider.addEventListener('input', (e) => { if (renderer.xr.isPresenting && currentMesh) { repositionObjectInFrontOfCamera(); } else if (currentMesh) { currentMesh.position.z = -parseFloat(e.target.value); } });
             
@@ -395,9 +366,7 @@
                     currentMesh.geometry = new THREE.BoxGeometry(currentOriginalWidth, currentOriginalHeight, depth); 
                     if(currentMesh.material) { 
                         currentMesh.material.transparent = isBgRemovalActive; 
-                        currentMesh.material.side = THREE.DoubleSide; 
-                        currentMesh.material.depthTest = true; 
-                        currentMesh.material.depthWrite = true; 
+                        currentMesh.material.depthWrite = !isBgRemovalActive;
                         currentMesh.material.needsUpdate = true; 
                     } 
                     showToast("حالت مکعب سه بعدی"); 
@@ -405,8 +374,7 @@
                     currentMesh.geometry = new THREE.PlaneGeometry(currentOriginalWidth, currentOriginalHeight, 1, 1); 
                     if(currentMesh.material) { 
                         currentMesh.material.transparent = isBgRemovalActive; 
-                        currentMesh.material.depthTest = true; 
-                        currentMesh.material.depthWrite = true; 
+                        currentMesh.material.depthWrite = !isBgRemovalActive;
                         currentMesh.material.needsUpdate = true; 
                     } 
                     showToast("حالت تخت"); 
@@ -468,55 +436,72 @@
         async function toggleBgRemoval() {
             if (!currentMesh) return; 
             if (typeof window.SelfieSegmentation === 'undefined') {
-                showToast("کتابخانه حذف پس‌زمینه هنوز بارگذاری نشده است");
+                showToast("کتابخانه حذف پس‌زمینه در دسترس نیست");
                 return;
             }
             if (!selfieSegmentation) { 
-                showToast("در حال آماده‌سازی پردازشگر..."); 
+                showToast("در حال راه‌اندازی مدل..."); 
                 selfieSegmentation = new window.SelfieSegmentation({locateFile: (file) => `./js/mediapipe/${file}`}); 
-                selfieSegmentation.setOptions({ modelSelection: 0, selfieMode: false }); // تغییر به 0 برای استفاده از مدل سریع‌تر و سبُک‌تر
+                selfieSegmentation.setOptions({ modelSelection: 0, selfieMode: false }); 
                 selfieSegmentation.onResults(onSegmentationResults); 
-                setTimeout(() => startBgRemoval(), 1500); 
+                setTimeout(() => startBgRemoval(), 1000); 
                 return; 
             }
             startBgRemoval();
         }
         
         async function startBgRemoval() {
-            isBgRemovalActive = !isBgRemovalActive; removeBgBtn.classList.toggle('active-mode', isBgRemovalActive);
+            isBgRemovalActive = !isBgRemovalActive; 
+            removeBgBtn.classList.toggle('active-mode', isBgRemovalActive);
+            
             if (isBgRemovalActive) {
-                showToast("حذف پس‌زمینه"); originalTexture = currentMesh.material.map;
+                showToast("حذف پس‌زمینه فعال شد"); 
+                originalTexture = currentMesh.material.map;
+                
                 let w = currentVideo ? currentVideo.videoWidth : currentImageTexture.image.width; 
                 let h = currentVideo ? currentVideo.videoHeight : currentImageTexture.image.height;
-                let scaleFactor = 1; if (w > TARGET_RESOLUTION) { scaleFactor = TARGET_RESOLUTION / w; w = TARGET_RESOLUTION; h = Math.floor(h * scaleFactor); }
-                segmentationCanvas.width = w; segmentationCanvas.height = h;
+                segmentationCanvas.width = w || 512; 
+                segmentationCanvas.height = h || 512;
                 
                 if (processedTexture) { processedTexture.dispose(); }
                 processedTexture = new THREE.CanvasTexture(segmentationCanvas); 
                 processedTexture.colorSpace = THREE.SRGBColorSpace; 
-                processedTexture.minFilter = THREE.LinearFilter; 
-                processedTexture.generateMipmaps = false; 
-                processedTexture.anisotropy = 1; 
 
-                currentMesh.material.map = processedTexture; currentMesh.material.transparent = true; currentMesh.material.alphaTest = 0.5; currentMesh.material.needsUpdate = true;
-                if (currentVideo) processVideoFrame(); else if (currentImageTexture) await selfieSegmentation.send({image: currentImageTexture.image});
+                currentMesh.material.map = processedTexture; 
+                currentMesh.material.transparent = true; 
+                currentMesh.material.depthWrite = false; // حل کامل چشمک زدن در حالت شفافیت
+                currentMesh.material.needsUpdate = true;
+                
+                if (currentVideo) processVideoFrame(); 
+                else if (currentImageTexture) await selfieSegmentation.send({image: currentImageTexture.image});
             } else { 
-                showToast("حذف پس‌زمینه خاموش"); 
+                showToast("حذف پس‌زمینه غیرفعال شد"); 
                 if (originalTexture) { 
                     currentMesh.material.map = originalTexture; 
                     currentMesh.material.transparent = false; 
-                    currentMesh.material.alphaTest = 0; 
+                    currentMesh.material.depthWrite = true; 
                     currentMesh.material.needsUpdate = true; 
                 } 
             }
         }
 
-        function onSegmentationResults(results) { if (!isBgRemovalActive) { isProcessing = false; return; } segmentationCtx.save(); segmentationCtx.clearRect(0, 0, segmentationCanvas.width, segmentationCanvas.height); segmentationCtx.drawImage(results.segmentationMask, 0, 0, segmentationCanvas.width, segmentationCanvas.height); segmentationCtx.globalCompositeOperation = 'source-in'; segmentationCtx.drawImage(results.image, 0, 0, segmentationCanvas.width, segmentationCanvas.height); segmentationCtx.restore(); if (processedTexture) processedTexture.needsUpdate = true; isProcessing = false; }
+        function onSegmentationResults(results) { 
+            if (!isBgRemovalActive) { isProcessing = false; return; } 
+            segmentationCtx.save(); 
+            segmentationCtx.clearRect(0, 0, segmentationCanvas.width, segmentationCanvas.height); 
+            segmentationCtx.drawImage(results.segmentationMask, 0, 0, segmentationCanvas.width, segmentationCanvas.height); 
+            segmentationCtx.globalCompositeOperation = 'source-in'; 
+            segmentationCtx.drawImage(results.image, 0, 0, segmentationCanvas.width, segmentationCanvas.height); 
+            segmentationCtx.restore(); 
+            
+            if (processedTexture) processedTexture.needsUpdate = true; 
+            isProcessing = false; 
+        }
         
         async function processVideoFrame() { 
             if (!(isBgRemovalActive && currentVideo && !currentVideo.paused && !currentVideo.ended)) return; 
             const now = performance.now(); 
-            if (!isProcessing && (now - lastProcessTime > PROCESS_INTERVAL)) { 
+            if (!isProcessing && (now - lastProcessTime > 150)) { 
                 isProcessing = true; 
                 lastProcessTime = now; 
                 try { 
@@ -528,7 +513,7 @@
             if('requestVideoFrameCallback' in currentVideo) { 
                 currentVideo.requestVideoFrameCallback(processVideoFrame); 
             } else { 
-                setTimeout(processVideoFrame, 200); 
+                setTimeout(processVideoFrame, 150); 
             } 
         }
 
@@ -541,12 +526,14 @@
             clearCurrentObject();
 
             fileHasBeenLoaded = true;
-            fileLabel.querySelector('span').innerText = "تغییر فایل (ریستارت)";
+            fileLabel.querySelector('span').innerText = "تغییر فایل";
 
             if (currentObjectUrl) { URL.revokeObjectURL(currentObjectUrl); currentObjectUrl = null; }
 
             distSlider.value = 1.0; isStretchMode = false; is3DMode = false; isAspectFlipped = false;
-            document.getElementById('stretch-btn').classList.remove('active-mode'); document.getElementById('mode-3d-btn').classList.remove('active-mode'); document.getElementById('horiz-vert-btn').classList.remove('active-mode');
+            document.getElementById('stretch-btn').classList.remove('active-mode'); 
+            document.getElementById('mode-3d-btn').classList.remove('active-mode'); 
+            document.getElementById('horiz-vert-btn').classList.remove('active-mode');
             
             if (!renderer.xr.isPresenting) { camera.position.set(0,0,0); camera.rotation.set(0,0,0); }
             
@@ -558,30 +545,27 @@
             document.getElementById('size-controls').classList.remove('hidden'); document.getElementById('size-controls').style.display = 'flex';
             cleanViewBtn.classList.remove('hidden'); if (!renderer.xr.isPresenting) fullscreenBtn.classList.remove('hidden'); distContainer.classList.remove('hidden');
             
-            if (fileType === 'image') { processImage(url); playBtn.style.display = 'none'; seekContainer.classList.add('hidden'); } else if (fileType === 'video') { processVideo(url); playBtn.style.display = 'flex'; seekContainer.classList.remove('hidden'); playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); }
+            if (fileType === 'image') { 
+                processImage(url); 
+                playBtn.style.display = 'none'; 
+                seekContainer.classList.add('hidden'); 
+            } else if (fileType === 'video') { 
+                processVideo(url); 
+                playBtn.style.display = 'flex'; 
+                seekContainer.classList.remove('hidden'); 
+                playIcon.classList.add('hidden'); 
+                pauseIcon.classList.remove('hidden'); 
+            }
         }
 
         function processImage(url) { 
             const img = new Image();
             img.onload = () => {
-                const MAX_DIMENSION = 1024; // تقلیل سایز عکس‌های خیلی بزرگ ورودی برای حفظ حافظه GPU
-                let w = img.width; let h = img.height;
-                if (w > MAX_DIMENSION || h > MAX_DIMENSION) {
-                    const ratio = Math.min(MAX_DIMENSION / w, MAX_DIMENSION / h);
-                    w = Math.floor(w * ratio); h = Math.floor(h * ratio);
-                }
-                const canvas = document.createElement('canvas');
-                canvas.width = w; canvas.height = h;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, h);
-
-                const texture = new THREE.CanvasTexture(canvas);
-                texture.colorSpace = THREE.SRGBColorSpace; 
-                texture.minFilter = THREE.LinearFilter; 
-                texture.generateMipmaps = false; 
-                texture.anisotropy = 1;
+                const texture = new THREE.Texture(img);
+                texture.colorSpace = THREE.SRGBColorSpace;
+                texture.needsUpdate = true;
                 currentImageTexture = texture;
-                createMesh(texture, w, h);
+                createMesh(texture, img.width, img.height);
             };
             img.src = url;
         }
@@ -599,47 +583,51 @@
             const texture = new THREE.VideoTexture(video); 
             texture.colorSpace = THREE.SRGBColorSpace; 
             texture.minFilter = THREE.LinearFilter; 
+            texture.magFilter = THREE.LinearFilter;
             texture.generateMipmaps = false; 
-            texture.anisotropy = 1; 
 
             video.addEventListener('loadedmetadata', () => { 
                 seekBar.max = video.duration; 
-                durationTimeEl.innerText = formatTime(video.duration); 
+                durationTimeEl.innerText = showTime(video.duration); 
                 createMesh(texture, video.videoWidth, video.videoHeight); 
             }); 
             
-            let lastUITime = 0;
             video.addEventListener('timeupdate', () => { 
                 if (uiHidden) return; 
-                const now = performance.now();
-                if (now - lastUITime > 500) { // آپدیت تایمر UI هر نیم ثانیه
-                    seekBar.value = video.currentTime; 
-                    currentTimeEl.innerText = formatTime(video.currentTime); 
-                    lastUITime = now;
-                }
+                seekBar.value = video.currentTime; 
+                currentTimeEl.innerText = showTime(video.currentTime); 
             }); 
             
             const playPromise = video.play(); 
-            if (playPromise !== undefined) playPromise.catch(error => { playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); }); 
+            if (playPromise !== undefined) playPromise.catch(() => { playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); }); 
             currentVideo = video; 
         }
 
         function createMesh(texture, width, height) { 
-            const aspectRatio = width / height; const displayHeight = 1.0; const displayWidth = displayHeight * aspectRatio; currentOriginalWidth = displayWidth; currentOriginalHeight = displayHeight; 
+            const aspectRatio = width / height; 
+            const displayHeight = 1.0; 
+            const displayWidth = displayHeight * aspectRatio; 
+            currentOriginalWidth = displayWidth; 
+            currentOriginalHeight = displayHeight; 
             
             const geometry = new THREE.PlaneGeometry(displayWidth, displayHeight, 1, 1); 
-            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: false, depthTest: true, depthWrite: true }); 
+            const material = new THREE.MeshBasicMaterial({ 
+                map: texture, 
+                side: THREE.DoubleSide, 
+                transparent: false, 
+                depthTest: true, 
+                depthWrite: true 
+            }); 
             
             currentMesh = new THREE.Mesh(geometry, material); 
             currentMesh.name = 'contentMesh'; 
             currentMesh.frustumCulled = false; 
-            currentMesh.matrixAutoUpdate = true;
 
-            if (renderer.xr.isPresenting) { needsArReposition = true; arInitFrames = 0; } else { currentMesh.position.set(0, 0, -parseFloat(distSlider.value)); }
+            if (renderer.xr.isPresenting) { needsArReposition = true; arInitFrames = 0; } 
+            else { currentMesh.position.set(0, 0, -parseFloat(distSlider.value)); }
             
-            currentMesh.rotation.order = 'XYZ'; 
             scene.add(currentMesh); 
-            showToast("فایل با موفقیت بارگذاری شد"); 
+            showToast("فایل بارگذاری شد"); 
         }
         
         function setupTouchGestures() {
