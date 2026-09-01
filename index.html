@@ -22,10 +22,10 @@
         
         .ui-hidden .ui-top-bar, .ui-hidden .ui-bottom-controls { display: none !important; opacity: 0; pointer-events: none !important; }
         
-        .ui-top-bar { padding: 15px; padding-top: max(15px, env(safe-area-inset-top)); display: flex; justify-content: space-between; pointer-events: auto; z-index: 10; }
+        .ui-top-bar { padding: 15px; padding-top: max(15px, env(safe-area-inset-top)); display: flex; justify-content: space-between; pointer-events: auto; z-index: 10; position: relative; }
         .ui-top-bar-left, .ui-top-bar-right { display: flex; gap: 10px; }
         
-        .ui-bottom-controls { padding: 10px 15px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: auto; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; box-sizing: border-box; padding-bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10; }
+        .ui-bottom-controls { padding: 10px 15px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: auto; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; box-sizing: border-box; padding-bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10; position: relative; }
         
         .btn-icon { background: rgba(40, 40, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s, background 0.3s; pointer-events: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.3); padding: 0; margin: 0; }
         .btn-icon:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.3); }
@@ -39,19 +39,19 @@
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -6px; border: 1px solid white; }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #4b5563; border-radius: 2px; }
         
-        .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; display: none; justify-content: center; align-items: center; padding: 20px; pointer-events: auto; box-sizing: border-box; backdrop-filter: blur(5px); }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; display: none; justify-content: center; align-items: center; padding: 20px; pointer-events: auto; box-sizing: border-box; backdrop-filter: blur(5px); }
         .modal-content { background: #1f2937; color: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; border: 1px solid #374151; text-align: right; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow-y: auto; max-height: 80vh; -webkit-overflow-scrolling: touch; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #374151; padding-bottom: 10px; }
         .modal-title { font-size: 1.1rem; font-weight: bold; color: #60a5fa; margin: 0; }
         
-        #temp-reveal-btn { position: absolute; top: max(80px, env(safe-area-inset-top)); right: 20px; z-index: 100; display: none; padding: 12px 25px; background: rgba(37, 99, 235, 0.9); color: white; font-weight: bold; font-size: 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); pointer-events: auto; }
-        #touch-status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 10px 20px; border-radius: 20px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 20; font-size: 0.9rem; }
+        #temp-reveal-btn { position: absolute; top: max(80px, env(safe-area-inset-top)); right: 20px; z-index: 100; display: none; padding: 12px 25px; background: rgba(37, 99, 235, 0.9); color: white; font-weight: bold; font-size: 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); pointer-events: auto; cursor: pointer; }
+        #touch-status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 20px; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 300; font-size: 0.95rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); text-align: center; }
         
         .radio-group { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
         .radio-item { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
         .radio-item input { width: 20px; height: 20px; accent-color: #3b82f6; }
         
-        #custom-ar-btn { position: absolute; bottom: 80px; right: 30px; padding: 12px 30px; border: 1px solid rgba(255,255,255,0.5); border-radius: 25px; background: rgba(0,0,0,0.7); color: white; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: bold; z-index: 50; cursor: pointer; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        #custom-ar-btn { position: absolute; bottom: 80px; right: 30px; padding: 12px 30px; border: 1px solid rgba(255,255,255,0.5); border-radius: 25px; background: rgba(0,0,0,0.7); color: white; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: bold; z-index: 100; cursor: pointer; box-shadow: 0 0 15px rgba(0,0,0,0.5); pointer-events: auto; }
         #custom-ar-btn:active { transform: scale(0.95); background: rgba(37, 99, 235, 0.8); }
         
         .w-full { width: 100%; } .flex { display: flex; } .items-center { align-items: center; } .gap-3 { gap: 12px; } .text-xs { font-size: 0.75rem; } .text-white { color: white; } .bg-black\/60 { background-color: rgba(0,0,0,0.6); } .rounded-full { border-radius: 9999px; } .p-2 { padding: 0.5rem; } .flex-grow { flex-grow: 1; } .mb-2 { margin-bottom: 0.5rem; } .mb-4 { margin-bottom: 0.5rem; } .justify-end { justify-content: flex-end; } .flex-col { flex-direction: column; } #cube-shape-btn { width: 50px; height: 50px; }
@@ -115,10 +115,10 @@
                 <div id="size-controls" class="controls-row mt-2" style="display: none;">
                     <button id="reset-btn" class="btn-icon" title="بازنشانی کامل"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg></button>
                     <button id="cube-shape-btn" class="btn-icon" title="تبدیل به مکعب سه بعدی"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2l-2.218-.887zm3.564 1.426L5.596 5 8 5.961 14.154 3.5l-2.404-.961zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/></svg></button>
-                    <button id="mode-3d-btn" class="btn-icon hidden" title="چرخش ۳ بعدی"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/><path d="M8 1a.5.5 0 0 1 .5.5v14a.5.5 0 0 1-1 0v-14A.5.5 0 0 1 8 1z" opacity="0.5"/><path d="M1 8a.5.5 0 0 1 .5-.5h14a.5.5 0 0 1 0 1h-14A.5.5 0 0 1 1 8z" opacity="0.5"/></svg></button>
+                    <button id="mode-3d-btn" class="btn-icon" title="چرخش ۳ بعدی"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/><path d="M8 1a.5.5 0 0 1 .5.5v14a.5.5 0 0 1-1 0v-14A.5.5 0 0 1 8 1z" opacity="0.5"/><path d="M1 8a.5.5 0 0 1 .5-.5h14a.5.5 0 0 1 0 1h-14A.5.5 0 0 1 1 8z" opacity="0.5"/></svg></button>
                     <button id="rotate-btn" class="btn-icon" title="چرخش 90 درجه"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg></button>
                     <button id="horiz-vert-btn" class="btn-icon" title="افقی به عمودی"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.5 2h-7a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5Zm-7-1a1.5 1.5 0 0 0-1.5 1.5v11A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 11.5 1h-7Z"/><path fill-rule="evenodd" d="M8 7.5a.5.5 0 0 1 .5.5v2.5a.5.5 0 0 1-1 0V8a.5.5 0 0 1 .5-.5Z"/></svg></button>
-                    <button id="stretch-btn" class="btn-icon hidden" title="تغییر سایز آزاد"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8z"/><path fill-rule="evenodd" d="M13.5 12.5a.5.5 0 0 1 0-1l2 1.5-2 1.5a.5.5 0 0 1 0-1V12.5zM2.5 12.5V13a.5.5 0 0 1 0 1l-2-1.5 2-1.5a.5.5 0 0 1 0 1v.5z"/><path d="M2.5 3.5a.5.5 0 0 1 0 1l-2-1.5 2-1.5a.5.5 0 0 1 0 1v.5zm11 0v-.5a.5.5 0 0 1 0-1l2 1.5-2 1.5a.5.5 0 0 1 0-1v-.5z"/></svg></button>
+                    <button id="stretch-btn" class="btn-icon" title="تغییر سایز آزاد"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8z"/><path fill-rule="evenodd" d="M13.5 12.5a.5.5 0 0 1 0-1l2 1.5-2 1.5a.5.5 0 0 1 0-1V12.5zM2.5 12.5V13a.5.5 0 0 1 0 1l-2-1.5 2-1.5a.5.5 0 0 1 0 1v.5z"/><path d="M2.5 3.5a.5.5 0 0 1 0 1l-2-1.5 2-1.5a.5.5 0 0 1 0 1v.5zm11 0v-.5a.5.5 0 0 1 0-1l2 1.5-2 1.5a.5.5 0 0 1 0-1v-.5z"/></svg></button>
                 </div>
             </div>
         </div>
@@ -131,7 +131,7 @@
                 </div>
                 <p style="font-size: 0.9rem; color: #ccc;">نحوه نمایش دوباره دکمه‌ها را انتخاب کنید:</p>
                 <div class="radio-group">
-                    <label class="radio-item"><input type="radio" name="reveal-mode" value="button" checked><span>نمایش دکمه موقت با لمس (۲ ثانیه)</span></label>
+                    <label class="radio-item"><input type="radio" name="reveal-mode" value="button" checked><span>نمایش دکمه موقت با لمس / کلیک</span></label>
                     <label class="radio-item"><input type="radio" name="reveal-mode" value="gesture"><span>چهار انگشت همزمان روی صفحه</span></label>
                 </div>
             </div>
@@ -177,10 +177,18 @@
         
         function hideNonARUI(){ try{ document.getElementById('bg-layer').style.display = 'none'; }catch(e){} }
         function showTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s < 10 ? '0' : ''}${s}`; }
-        function showToast(msg) { touchStatus.innerText = msg; touchStatus.style.opacity = '1'; setTimeout(() => { touchStatus.style.opacity = '0'; }, 2500); }
+        
+        let toastTimer = null;
+        function showToast(msg) { 
+            touchStatus.innerText = msg; 
+            touchStatus.style.opacity = '1'; 
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { touchStatus.style.opacity = '0'; }, 2500); 
+        }
 
         let camera, scene, renderer, currentMesh = null, currentVideo = null, currentImageTexture = null, currentSession = null;
-        let isCubeMode = false, currentOriginalWidth = 1, currentOriginalHeight = 1;
+        let isCubeMode = false, is3DRotationActive = false, isFreeScale = false;
+        let currentOriginalWidth = 1, currentOriginalHeight = 1;
         let isAspectFlipped = false; 
         
         let uiHidden = false, revealMode = 'button', revealTimer = null;
@@ -190,10 +198,9 @@
         
         let arInitFrames = 0; let needsArReposition = false; 
         let currentObjectUrl = null; let isStartingAR = false; 
-        let fileHasBeenLoaded = false; 
         let renderRequested = false;
 
-        const uiLayer = document.getElementById('ui-layer'), fileInput = document.getElementById('file-input'), fileLabel = document.getElementById('file-label'), controlsPanel = document.getElementById('controls-panel'), cleanViewBtn = document.getElementById('clean-view-btn'), fullscreenBtn = document.getElementById('fullscreen-btn'), distContainer = document.getElementById('dist-container'), seekContainer = document.getElementById('seek-container'), playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), seekBar = document.getElementById('seek-bar'), currentTimeEl = document.getElementById('current-time'), durationTimeEl = document.getElementById('duration-time'), touchStatus = document.getElementById('touch-status'), distSlider = document.getElementById('dist-slider'), tempRevealBtn = document.getElementById('temp-reveal-btn'), settingsBtn = document.getElementById('settings-btn'), settingsModal = document.getElementById('settings-modal'), helpModal = document.getElementById('help-modal'), removeBgBtn = document.getElementById('remove-bg-btn'), customArBtn = document.getElementById('custom-ar-btn'), exitBtn = document.getElementById('exit-btn'), aboutBtn = document.getElementById('about-btn'), aboutModal = document.getElementById('about-modal'), cubeShapeBtn = document.getElementById('cube-shape-btn');
+        const uiLayer = document.getElementById('ui-layer'), fileInput = document.getElementById('file-input'), fileLabel = document.getElementById('file-label'), controlsPanel = document.getElementById('controls-panel'), cleanViewBtn = document.getElementById('clean-view-btn'), fullscreenBtn = document.getElementById('fullscreen-btn'), distContainer = document.getElementById('dist-container'), seekContainer = document.getElementById('seek-container'), playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), seekBar = document.getElementById('seek-bar'), currentTimeEl = document.getElementById('current-time'), durationTimeEl = document.getElementById('duration-time'), touchStatus = document.getElementById('touch-status'), distSlider = document.getElementById('dist-slider'), tempRevealBtn = document.getElementById('temp-reveal-btn'), settingsBtn = document.getElementById('settings-btn'), settingsModal = document.getElementById('settings-modal'), helpModal = document.getElementById('help-modal'), removeBgBtn = document.getElementById('remove-bg-btn'), customArBtn = document.getElementById('custom-ar-btn'), exitBtn = document.getElementById('exit-btn'), aboutBtn = document.getElementById('about-btn'), aboutModal = document.getElementById('about-modal'), cubeShapeBtn = document.getElementById('cube-shape-btn'), mode3dBtn = document.getElementById('mode-3d-btn'), stretchBtn = document.getElementById('stretch-btn');
         const touchLayer = document.getElementById('touch-layer');
 
         init(); 
@@ -230,7 +237,8 @@
 
             requestRender();
 
-            customArBtn.addEventListener('click', async () => {
+            customArBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
                 if (!currentMesh) { showToast("لطفاً ابتدا فایل را انتخاب کنید"); return; }
                 if (currentSession === null && !isStartingAR) {
                     isStartingAR = true;
@@ -280,6 +288,9 @@
         }
 
         function render(timestamp, frame) { 
+            if (is3DRotationActive && currentMesh) {
+                currentMesh.rotation.y += 0.01;
+            }
             if (renderer.xr.isPresenting) {
                 if (!frame) return;
                 if (needsArReposition) { 
@@ -291,10 +302,13 @@
                 }
             }
             renderer.render(scene, camera); 
+            if (is3DRotationActive && (!renderer.xr || !renderer.xr.isPresenting)) {
+                requestRender();
+            }
         }
         
         function onWindowResize() { 
-            if (renderer.xr.isPresenting) return;
+            if (renderer.xr && renderer.xr.isPresenting) return;
             camera.aspect = window.innerWidth / window.innerHeight; 
             camera.updateProjectionMatrix(); 
             renderer.setSize(window.innerWidth, window.innerHeight); 
@@ -307,44 +321,49 @@
                 if ('requestVideoFrameCallback' in currentVideo) {
                     currentVideo.requestVideoFrameCallback(startVideoLoop);
                 } else {
-                    setTimeout(startVideoLoop, 1000 / 30);
+                    requestAnimationFrame(startVideoLoop);
                 }
             }
         }
 
         function setupUIListeners() {
-            exitBtn.addEventListener('click', () => { 
+            exitBtn.addEventListener('click', (e) => { 
+                e.stopPropagation();
                 if (currentSession) { currentSession.end(); } else { window.location.reload(); }
             });
 
-            aboutBtn.addEventListener('click', () => aboutModal.style.display = 'flex'); 
-            document.getElementById('close-about-btn').addEventListener('click', () => aboutModal.style.display = 'none');
+            aboutBtn.addEventListener('click', (e) => { e.stopPropagation(); aboutModal.style.display = 'flex'; }); 
+            document.getElementById('close-about-btn').addEventListener('click', (e) => { e.stopPropagation(); aboutModal.style.display = 'none'; });
             
             fileInput.addEventListener('click', (e) => {
-                if (fileHasBeenLoaded) { 
-                    e.preventDefault(); 
-                    clearCurrentObject();
-                    fileHasBeenLoaded = false;
-                    fileLabel.querySelector('span').innerText = "انتخاب ویدیو یا عکس";
-                    fileInput.value = '';
-                    fileInput.click();
-                } else { 
-                    e.stopPropagation(); 
-                    e.target.value = ''; 
-                }
+                e.stopPropagation();
+                e.target.value = '';
             });
             
             fileInput.addEventListener('change', handleFileSelect);
-            cleanViewBtn.addEventListener('click', () => { uiHidden = true; document.body.classList.add('ui-hidden'); showToast("منوها پنهان شدند"); });
-            tempRevealBtn.addEventListener('click', () => revealUI());
-            settingsBtn.addEventListener('click', () => settingsModal.style.display = 'flex'); 
-            document.getElementById('close-settings-btn').addEventListener('click', () => settingsModal.style.display = 'none');
+            cleanViewBtn.addEventListener('click', (e) => { e.stopPropagation(); uiHidden = true; document.body.classList.add('ui-hidden'); showToast("منوها پنهان شدند"); });
+            tempRevealBtn.addEventListener('click', (e) => { e.stopPropagation(); revealUI(); });
+            settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsModal.style.display = 'flex'; }); 
+            document.getElementById('close-settings-btn').addEventListener('click', (e) => { e.stopPropagation(); settingsModal.style.display = 'none'; });
             document.querySelectorAll('input[name="reveal-mode"]').forEach(radio => radio.addEventListener('change', (e) => revealMode = e.target.value));
-            document.getElementById('help-btn').addEventListener('click', () => helpModal.style.display = 'flex'); 
-            document.getElementById('close-help-btn').addEventListener('click', () => helpModal.style.display = 'none');
-            fullscreenBtn.addEventListener('click', () => { if (renderer.xr.isPresenting) return; if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); });
+            document.getElementById('help-btn').addEventListener('click', (e) => { e.stopPropagation(); helpModal.style.display = 'flex'; }); 
+            document.getElementById('close-help-btn').addEventListener('click', (e) => { e.stopPropagation(); helpModal.style.display = 'none'; });
             
-            playBtn.addEventListener('click', () => { 
+            [settingsModal, aboutModal, helpModal].forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.style.display = 'none';
+                });
+            });
+
+            fullscreenBtn.addEventListener('click', (e) => { 
+                e.stopPropagation();
+                if (renderer.xr && renderer.xr.isPresenting) return; 
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen(); 
+                else document.exitFullscreen(); 
+            });
+            
+            playBtn.addEventListener('click', (e) => { 
+                e.stopPropagation();
                 if (currentVideo) { 
                     if (currentVideo.paused) { 
                         currentVideo.play(); playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); 
@@ -363,7 +382,7 @@
             });
             
             distSlider.addEventListener('input', (e) => { 
-                if (renderer.xr.isPresenting && currentMesh) { 
+                if (renderer.xr && renderer.xr.isPresenting && currentMesh) { 
                     repositionObjectInFrontOfCamera(); 
                 } else if (currentMesh) { 
                     currentMesh.position.z = -parseFloat(e.target.value); 
@@ -371,10 +390,15 @@
                 } 
             });
             
-            document.getElementById('reset-btn').addEventListener('click', () => { 
+            document.getElementById('reset-btn').addEventListener('click', (e) => { 
+                e.stopPropagation();
                 if (currentMesh) { 
                     distSlider.value = 1.0; 
-                    if (renderer.xr.isPresenting) { 
+                    is3DRotationActive = false;
+                    isFreeScale = false;
+                    mode3dBtn.classList.remove('active-mode');
+                    stretchBtn.classList.remove('active-mode');
+                    if (renderer.xr && renderer.xr.isPresenting) { 
                         repositionObjectInFrontOfCamera(); 
                     } else { 
                         currentMesh.position.set(0, 0, -1.0); 
@@ -391,11 +415,12 @@
                 } 
             });
             
-            cubeShapeBtn.addEventListener('click', () => { 
+            cubeShapeBtn.addEventListener('click', (e) => { 
+                e.stopPropagation();
                 if (!currentMesh) return; 
                 isCubeMode = !isCubeMode; 
                 cubeShapeBtn.classList.toggle('active-mode', isCubeMode); 
-                try { currentMesh.geometry.dispose(); } catch(e){} 
+                try { currentMesh.geometry.dispose(); } catch(err){} 
                 if (isCubeMode) { 
                     const depth = Math.min(currentOriginalWidth, currentOriginalHeight) * 0.5; 
                     currentMesh.geometry = new THREE.BoxGeometry(currentOriginalWidth, currentOriginalHeight, depth); 
@@ -419,14 +444,40 @@
                 requestRender();
             });
 
-            document.getElementById('rotate-btn').addEventListener('click', () => { 
+            mode3dBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!currentMesh) return;
+                is3DRotationActive = !is3DRotationActive;
+                mode3dBtn.classList.toggle('active-mode', is3DRotationActive);
+                showToast(is3DRotationActive ? "چرخش ۳ بعدی فعال شد" : "چرخش ۳ بعدی غیرفعال شد");
+                requestRender();
+            });
+
+            stretchBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!currentMesh) return;
+                isFreeScale = !isFreeScale;
+                stretchBtn.classList.toggle('active-mode', isFreeScale);
+                if (isFreeScale) {
+                    currentMesh.scale.set(1.4, 1.0, 1.0);
+                    showToast("حالت کشیده / آزاد");
+                } else {
+                    currentMesh.scale.set(1.0, 1.0, 1.0);
+                    showToast("حالت اصلی");
+                }
+                requestRender();
+            });
+
+            document.getElementById('rotate-btn').addEventListener('click', (e) => { 
+                e.stopPropagation();
                 if (currentMesh) { 
                     currentMesh.rotation.z -= Math.PI / 2; 
                     requestRender();
                 } 
             });
             
-            document.getElementById('horiz-vert-btn').addEventListener('click', function() { 
+            document.getElementById('horiz-vert-btn').addEventListener('click', function(e) { 
+                e.stopPropagation();
                 if (!currentMesh) return; 
                 isAspectFlipped = !isAspectFlipped; 
                 this.classList.toggle('active-mode', isAspectFlipped);
@@ -444,7 +495,7 @@
                 requestRender();
             });
 
-            removeBgBtn.addEventListener('click', toggleBgRemoval);
+            removeBgBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleBgRemoval(); });
         }
 
         function clearCurrentObject() {
@@ -473,6 +524,10 @@
             }
             isProcessing = false;
             isBgRemovalActive = false;
+            is3DRotationActive = false;
+            isFreeScale = false;
+            if (mode3dBtn) mode3dBtn.classList.remove('active-mode');
+            if (stretchBtn) stretchBtn.classList.remove('active-mode');
             requestRender();
         }
 
@@ -574,7 +629,6 @@
 
             clearCurrentObject();
 
-            fileHasBeenLoaded = true;
             fileLabel.querySelector('span').innerText = "تغییر فایل";
 
             if (currentObjectUrl) { URL.revokeObjectURL(currentObjectUrl); currentObjectUrl = null; }
@@ -582,7 +636,7 @@
             distSlider.value = 1.0; isAspectFlipped = false;
             document.getElementById('horiz-vert-btn').classList.remove('active-mode');
             
-            if (!renderer.xr.isPresenting) { camera.position.set(0,0,0); camera.rotation.set(0,0,0); if (controls) controls.target.set(0,0,-1); controls.update(); }
+            if (!renderer.xr || !renderer.xr.isPresenting) { camera.position.set(0,0,0); camera.rotation.set(0,0,0); if (controls) controls.target.set(0,0,-1); controls.update(); }
             
             currentObjectUrl = URL.createObjectURL(file); 
             const url = currentObjectUrl;
@@ -590,7 +644,7 @@
             
             removeBgBtn.classList.remove('active-mode'); controlsPanel.classList.remove('hidden'); controlsPanel.classList.add('flex');
             document.getElementById('size-controls').classList.remove('hidden'); document.getElementById('size-controls').style.display = 'flex';
-            cleanViewBtn.classList.remove('hidden'); if (!renderer.xr.isPresenting) fullscreenBtn.classList.remove('hidden'); distContainer.classList.remove('hidden');
+            cleanViewBtn.classList.remove('hidden'); if (!renderer.xr || !renderer.xr.isPresenting) fullscreenBtn.classList.remove('hidden'); distContainer.classList.remove('hidden');
             
             if (fileType === 'image') { 
                 processImage(url); 
@@ -678,7 +732,7 @@
             currentMesh.name = 'contentMesh'; 
             currentMesh.frustumCulled = false; 
 
-            if (renderer.xr.isPresenting) { needsArReposition = true; arInitFrames = 0; } 
+            if (renderer.xr && renderer.xr.isPresenting) { needsArReposition = true; arInitFrames = 0; } 
             else { currentMesh.position.set(0, 0, -parseFloat(distSlider.value)); if(controls) controls.target.copy(currentMesh.position); }
             
             scene.add(currentMesh); 
@@ -686,15 +740,22 @@
             requestRender();
         }
         
+        function triggerReveal() {
+            if (uiHidden) { 
+                if (revealMode === 'button') { 
+                    tempRevealBtn.style.display = 'block'; 
+                    if (revealTimer) clearTimeout(revealTimer); 
+                    revealTimer = setTimeout(() => { tempRevealBtn.style.display = 'none'; }, 3000); 
+                } 
+            }
+        }
+
         function setupTouchUIReveal() {
+            touchLayer.addEventListener('click', triggerReveal);
             touchLayer.addEventListener('touchstart', (e) => {
                 if (uiHidden) { 
                     if (revealMode === 'gesture' && e.touches.length === 4) { revealUI(); } 
-                    else if (revealMode === 'button') { 
-                        tempRevealBtn.style.display = 'block'; 
-                        if (revealTimer) clearTimeout(revealTimer); 
-                        revealTimer = setTimeout(() => { tempRevealBtn.style.display = 'none'; }, 2000); 
-                    } 
+                    else if (revealMode === 'button') { triggerReveal(); }
                 }
             }, { passive: true });
         }
