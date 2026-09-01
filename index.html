@@ -70,7 +70,6 @@
 
     <div id="ui-layer">
         <div id="touch-layer"></div>
-        
         <button id="temp-reveal-btn">آشکارسازی دکمه‌ها</button>
         
         <div class="ui-top-bar">
@@ -82,7 +81,7 @@
             </div>
             <div class="ui-top-bar-right">
                 <button id="clean-view-btn" class="btn-icon hidden" title="پنهان شدن دکمه‌ها"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg></button>
-                <button id="fullscreen-btn" class="btn-icon hidden" title="تمام صفحه"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/></svg></button>
+                <button id="fullscreen-btn" class="btn-icon hidden" title="تمام صفحه"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/></svg></button>
             </div>
         </div>
 
@@ -180,13 +179,11 @@
             });
         }
         
-        // توابع کمکی
         function hideNonARUI(){ try{ document.getElementById('bg-layer').style.display = 'none'; }catch(e){} }
         function showNonARUI(){ try{ document.getElementById('bg-layer').style.display = 'block'; }catch(e){} }
         function formatTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s < 10 ? '0' : ''}${s}`; }
         function showToast(msg) { touchStatus.innerText = msg; touchStatus.style.opacity = '1'; setTimeout(() => { touchStatus.style.opacity = '0'; }, 2500); }
 
-        // برادرهای ثابت جهت جلوگیری از تخصیص حافظه مکرر (بهینه‌سازی داغ شدن CPU)
         const _screenPinchDir = new THREE.Vector3(); 
         const _tempQuat = new THREE.Quaternion(); 
         const _axisQuaternion = new THREE.Quaternion(); 
@@ -211,14 +208,14 @@
         let currentObjectUrl = null; let isStartingAR = false; 
         let fileHasBeenLoaded = false; 
 
-        // نرخ ۳۰ فریم برای قفل FPS صفحه غیر AR
+        // کنترل نرخ فریم نرم‌افزاری برای کاهش مصرف توان
         let lastRenderTime = 0;
         const TARGET_FPS = 30;
         const FRAME_INTERVAL = 1000 / TARGET_FPS;
 
-        // بهینه‌سازی حرارتی و افت فریم: تغییر این مقادیر برای تنفس بهتر GPU/CPU 
-        const PROCESS_INTERVAL = 150; // افزایش فاصله پردازش (فشار کمتر به پردازنده)
-        const TARGET_RESOLUTION = 320; // کاهش وضوح پردازش هوش‌مصنوعی (نجات گوشی از داغ شدن)
+        // تنظیمات بهینه‌شده جهت خنک‌سازی سخت‌افزار
+        const PROCESS_INTERVAL = 200; // کاهش وقفه فریم هوش مصنوعی به 5 بار در ثانیه
+        const TARGET_RESOLUTION = 256; // رزولوشن مناسب برای Selfie Segmentation
 
         const uiLayer = document.getElementById('ui-layer'), fileInput = document.getElementById('file-input'), fileLabel = document.getElementById('file-label'), controlsPanel = document.getElementById('controls-panel'), cleanViewBtn = document.getElementById('clean-view-btn'), fullscreenBtn = document.getElementById('fullscreen-btn'), distContainer = document.getElementById('dist-container'), seekContainer = document.getElementById('seek-container'), playBtn = document.getElementById('play-btn'), playIcon = document.getElementById('play-icon'), pauseIcon = document.getElementById('pause-icon'), seekBar = document.getElementById('seek-bar'), currentTimeEl = document.getElementById('current-time'), durationTimeEl = document.getElementById('duration-time'), touchStatus = document.getElementById('touch-status'), distSlider = document.getElementById('dist-slider'), tempRevealBtn = document.getElementById('temp-reveal-btn'), settingsBtn = document.getElementById('settings-btn'), settingsModal = document.getElementById('settings-modal'), helpModal = document.getElementById('help-modal'), removeBgBtn = document.getElementById('remove-bg-btn'), customArBtn = document.getElementById('custom-ar-btn'), exitBtn = document.getElementById('exit-btn'), aboutBtn = document.getElementById('about-btn'), aboutModal = document.getElementById('about-modal'), cubeShapeBtn = document.getElementById('cube-shape-btn');
         const touchLayer = document.getElementById('touch-layer');
@@ -233,13 +230,13 @@
             renderer = new THREE.WebGLRenderer({ 
                 antialias: false, 
                 alpha: true, 
-                powerPreference: "low-power",
-                precision: "mediump", 
+                powerPreference: "low-power", // بهینه‌سازی مصرف توان
+                precision: "lowp",             // کاهش دقت شیدرها جهت نجات GPU
                 depth: true, 
                 stencil: false, 
                 preserveDrawingBuffer: false, 
                 logarithmicDepthBuffer: false,
-                desynchronized: true // کاهش محسوس تاخیر و مصرف در گوشی‌های اندرویدی
+                desynchronized: true
             });
             
             renderer.setClearColor(0x000000, 0); 
@@ -249,15 +246,15 @@
             renderer.toneMapping = THREE.NoToneMapping; 
             
             renderer.debug.checkShaderErrors = false; 
-            renderer.setPixelRatio(1); 
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25)); 
             renderer.setSize(window.innerWidth, window.innerHeight); 
             
             renderer.outputColorSpace = THREE.SRGBColorSpace; 
             renderer.xr.enabled = true; 
             renderer.xr.setReferenceSpaceType('local');
             
-            // محدودیت شدیدتر تراکم پیکسلی AR روی 0.35 جهت پیشگیری قطعی از جوش آوردن دستگاه
-            try { renderer.xr.setFramebufferScaleFactor(0.35); } catch (e) { } 
+            // تعیین ضریب وضوح AR در محدوده بهینه 0.50 برای توازن کیفیت و دما
+            try { renderer.xr.setFramebufferScaleFactor(0.50); } catch (e) { } 
             
             container.appendChild(renderer.domElement);
             renderer.setAnimationLoop(render);
@@ -270,14 +267,14 @@
                     try {
                         const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
                         
+                        // قفل کردن سخت‌افزار دوربین روی 30FPS در صورت پشتیبانی مرورگر
                         if (session.supportedFrameRates) {
                             const rates = Array.from(session.supportedFrameRates);
-                            const minFPS = Math.min(...rates);
-                            try {
-                                await session.updateTargetFrameRate(minFPS);
-                                console.log("AR Hardware Camera Locked to:", minFPS, "FPS");
-                            } catch(err) {
-                                console.warn("FPS limitation not supported by hardware.", err);
+                            if (rates.includes(30)) {
+                                try {
+                                    await session.updateTargetFrameRate(30);
+                                    console.log("AR Hardware Camera Locked to 30 FPS");
+                                } catch(err) {}
                             }
                         }
 
@@ -309,7 +306,8 @@
         }
 
         function render(timestamp, frame) { 
-            if (!renderer.xr.isPresenting && timestamp && (timestamp - lastRenderTime < FRAME_INTERVAL)) {
+            // محدودیت FPS نرم‌افزاری در صورت نرسیدن به حد مشخص
+            if (timestamp && (timestamp - lastRenderTime < FRAME_INTERVAL)) {
                 return;
             }
             lastRenderTime = timestamp;
@@ -476,7 +474,7 @@
             if (!selfieSegmentation) { 
                 showToast("در حال آماده‌سازی پردازشگر..."); 
                 selfieSegmentation = new window.SelfieSegmentation({locateFile: (file) => `./js/mediapipe/${file}`}); 
-                selfieSegmentation.setOptions({ modelSelection: 1, selfieMode: false }); 
+                selfieSegmentation.setOptions({ modelSelection: 0, selfieMode: false }); // تغییر به 0 برای استفاده از مدل سریع‌تر و سبُک‌تر
                 selfieSegmentation.onResults(onSegmentationResults); 
                 setTimeout(() => startBgRemoval(), 1500); 
                 return; 
@@ -530,7 +528,7 @@
             if('requestVideoFrameCallback' in currentVideo) { 
                 currentVideo.requestVideoFrameCallback(processVideoFrame); 
             } else { 
-                setTimeout(processVideoFrame, 100); 
+                setTimeout(processVideoFrame, 200); 
             } 
         }
 
@@ -566,7 +564,7 @@
         function processImage(url) { 
             const img = new Image();
             img.onload = () => {
-                const MAX_DIMENSION = 1280; 
+                const MAX_DIMENSION = 1024; // تقلیل سایز عکس‌های خیلی بزرگ ورودی برای حفظ حافظه GPU
                 let w = img.width; let h = img.height;
                 if (w > MAX_DIMENSION || h > MAX_DIMENSION) {
                     const ratio = Math.min(MAX_DIMENSION / w, MAX_DIMENSION / h);
@@ -594,9 +592,9 @@
             video.crossOrigin = 'anonymous'; 
             video.loop = true; 
             video.playsInline = true; 
-            video.preload = 'auto'; 
-            video.volume = 1.0;     // اطمینان از تنظیم صدای کامل
-            video.muted = false;    // حل مشکل عدم پخش صدا 
+            video.preload = 'metadata'; 
+            video.volume = 1.0;
+            video.muted = false; 
             
             const texture = new THREE.VideoTexture(video); 
             texture.colorSpace = THREE.SRGBColorSpace; 
@@ -614,7 +612,7 @@
             video.addEventListener('timeupdate', () => { 
                 if (uiHidden) return; 
                 const now = performance.now();
-                if (now - lastUITime > 250) {
+                if (now - lastUITime > 500) { // آپدیت تایمر UI هر نیم ثانیه
                     seekBar.value = video.currentTime; 
                     currentTimeEl.innerText = formatTime(video.currentTime); 
                     lastUITime = now;
@@ -635,6 +633,7 @@
             currentMesh = new THREE.Mesh(geometry, material); 
             currentMesh.name = 'contentMesh'; 
             currentMesh.frustumCulled = false; 
+            currentMesh.matrixAutoUpdate = true;
 
             if (renderer.xr.isPresenting) { needsArReposition = true; arInitFrames = 0; } else { currentMesh.position.set(0, 0, -parseFloat(distSlider.value)); }
             
