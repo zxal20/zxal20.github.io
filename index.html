@@ -167,6 +167,8 @@
 
     <script type="module">
         import * as THREE from './js/three.module.js';
+        // افزودن ماژول OrbitControls از مسیر درخواستی کاربر
+        import { OrbitControls } from './js/OrbitControls.js';
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -197,6 +199,7 @@
         let initialQuaternion = new THREE.Quaternion(); let targetLocalAxis = new THREE.Vector3();
         let uiHidden = false, revealMode = 'button', revealTimer = null;
         
+        let controls; // تعریف کنترلر در Scope کلی
         let selfieSegmentation = null, isBgRemovalActive = false, segmentationCanvas = document.createElement('canvas'), segmentationCtx = segmentationCanvas.getContext('2d', { willReadFrequently: true }), originalTexture = null, processedTexture = null, lastProcessTime = 0, isProcessing = false;
         
         let arInitFrames = 0; let needsArReposition = false; 
@@ -214,11 +217,11 @@
             scene = new THREE.Scene(); 
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
             
-            // تنظیمات رندرر کاملاً بهینه‌شده جهت جلوگیری از گرم شدن دستگاه
+            // تنظیمات رندرر کاملاً بهینه‌شده برای جلوگیری از داغ شدن و افت فریم
             renderer = new THREE.WebGLRenderer({ 
-                antialias: false, // خاموش کردن آنتی‌الیاسینگ جهت کاهش بار GPU
+                antialias: false, // خاموش بودن کامل آنتی‌الیاس جهت کاهش بار GPU (حفظ شده طبق درخواست)
                 alpha: true, 
-                powerPreference: "low-power", // حالت کم‌مصرف انرژی
+                powerPreference: "low-power", // حالت مصرف انرژی بهینه (حفظ شده طبق درخواست)
                 precision: "mediump",
                 depth: true, 
                 stencil: false, 
@@ -226,7 +229,8 @@
             });
             
             renderer.setClearColor(0x000000, 0); 
-            // تنظیم دقیق Pixel Ratio روی 1 برای حذف محاسبات پیکسل اضافه
+            
+            // قفل کردن دقیق Pixel Ratio روی ۱ بدون توجه به تراکم پیکسلی صفحه نمایشگر
             renderer.setPixelRatio(1); 
             renderer.setSize(window.innerWidth, window.innerHeight); 
             
@@ -236,7 +240,13 @@
             
             container.appendChild(renderer.domElement);
 
-            // رندر اولیه هنگام آپلود بدون حلقه مداوم
+            // راه‌اندازی OrbitControls و بایند کردن آن به لایه تاچ برای عملکرد رویدادمحور
+            controls = new OrbitControls(camera, touchLayer);
+            controls.enableDamping = false; // دامپینگ (نرمی حرکت) باید خاموش باشد تا نیازی به حلقه مداوم requestAnimationFrame نداشته باشیم
+            controls.enableZoom = true;
+            controls.addEventListener('change', requestRender); // وصل کردن چرخش کنترلر به رندر درخواستی
+
+            // رندر اولیه در لحظه باز شدن
             requestRender();
 
             customArBtn.addEventListener('click', async () => {
@@ -250,14 +260,15 @@
                         currentSession = session;
                         hideNonARUI(); 
                         customArBtn.style.display = 'none'; fullscreenBtn.style.display = 'none'; exitBtn.style.display = 'none';
+                        controls.enabled = false; // غیرفعال کردن Orbit در حالت AR
                         showToast("حالت AR فعال شد");
                         needsArReposition = true; arInitFrames = 0; 
 
-                        // حلقه رندر فقط هنگام اجرای WebXR فعال می‌شود
+                        // رندر مداوم WebXR تنها در این بخش ضروری و اجباری است
                         renderer.setAnimationLoop(render);
 
                         session.addEventListener('end', () => {
-                            renderer.setAnimationLoop(null);
+                            renderer.setAnimationLoop(null); // توقف کامل حلقه WebXR هنگام خروج
                             currentSession = null;
                             window.location.reload();
                         });
@@ -268,7 +279,7 @@
             setupUIListeners(); setupTouchGestures();
         }
 
-        // تابع مدیریت رندر رویدادمحور
+        // سیستم رندر رویدادمحور - کاملاً بدون حلقه مداوم AnimationFrame برای 3D View
         function requestRender() {
             if (!renderRequested && (!renderer.xr || !renderer.xr.isPresenting)) {
                 renderRequested = true;
@@ -389,7 +400,8 @@
                         currentMesh.position.set(0, 0, -1.0); 
                         currentMesh.rotation.set(0, 0, 0); 
                         camera.position.set(0,0,0); 
-                        camera.rotation.set(0,0,0); 
+                        camera.rotation.set(0,0,0);
+                        if(controls) { controls.target.set(0,0,0); controls.update(); }
                     } 
                     currentMesh.scale.set(1, 1, 1); 
                     isStretchMode = false; is3DMode = false; isAspectFlipped = false; 
@@ -596,7 +608,7 @@
             document.getElementById('mode-3d-btn').classList.remove('active-mode'); 
             document.getElementById('horiz-vert-btn').classList.remove('active-mode');
             
-            if (!renderer.xr.isPresenting) { camera.position.set(0,0,0); camera.rotation.set(0,0,0); }
+            if (!renderer.xr.isPresenting) { camera.position.set(0,0,0); camera.rotation.set(0,0,0); if (controls) controls.target.set(0,0,-1); }
             
             currentObjectUrl = URL.createObjectURL(file); 
             const url = currentObjectUrl;
@@ -706,6 +718,10 @@
                     if (revealMode === 'gesture' && e.touches.length === 4) { revealUI(); } 
                     else if (revealMode === 'button') { tempRevealBtn.style.display = 'block'; if (revealTimer) clearTimeout(revealTimer); revealTimer = setTimeout(() => { tempRevealBtn.style.display = 'none'; }, 2000); } 
                 }
+                
+                // در صورتی که OrbitControls فعال است و کاربر می‌خواهد شیء را جابجا کند از تداخل جلوگیری می‌کنیم
+                if (controls && controls.enabled) return;
+
                 if (e.touches.length === 1) { isDragging = true; previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY }; } 
                 else if (e.touches.length === 2 && currentMesh) { 
                     gestureType = null; const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; 
@@ -720,6 +736,7 @@
             }, { passive: false });
             
             touchLayer.addEventListener('touchmove', (e) => {
+                if (controls && controls.enabled) return;
                 e.preventDefault(); 
                 if (!currentMesh) return;
                 
